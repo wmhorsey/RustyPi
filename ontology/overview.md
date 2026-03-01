@@ -50,9 +50,13 @@ Compression doesn't just sit there. Every atom is a knot of stored, unresolved t
 
 The system is scale-free in the sense that no absolute numbers matter. It is a continuum from:
 
-| Low end | High end |
-|---------|----------|
-| Free-flowing STE spread across vast distances | Maximum-potential STE packed into a QGP-like shell around quarks |
+| End | State |
+|-----|-------|
+| **Absolute zero** | Void — cavitated substrate, literally zero STE. A bubble of nothing. |
+| **Low** | Free-flowing STE spread across vast distances (open space) |
+| **High** | Maximum-potential STE packed into a QGP-like shell around quarks |
+
+Everything in between — atoms, molecules, planets, stars — sits somewhere on this gradient. The endpoints are qualitatively distinct: the high end is maximum compression; the low end is not just "thin" STE but the complete absence of it.
 
 Everything in between — atoms, molecules, planets, stars — sits somewhere on this single gradient.
 
@@ -134,3 +138,64 @@ This gives the electron every property we observe:
 - **Wave-like behaviour** — The swarm's spatial probability distribution over the coherence zone **is** the wavefunction. Quantum fuzziness is not mysterious; it is the statistical footprint of a living, breathing vortex population.
 
 Electrons exist wherever the substrate's self-attraction naturally forms and sustains micro-vortex swarms — anywhere concentration gradients and background density permit them to persist.
+
+---
+
+## Proton Anatomy
+
+The proton is the simplest stable baryon and the first complete structure the ontology can describe in detail.
+
+### The Spike (Down Quark)
+
+At the centre of the proton sits the **Spike** — the down quark. This is the peak concentration of STE within the structure: the deepest compression point where all internal tension lines converge. The Spike is the primary attractor; it is what holds the proton together.
+
+### Void Cores (Up Quarks)
+
+Two **void cores** — the up quarks — sit off-centre, forming a roughly triangular arrangement with the Spike. These are **cavitated substrate** — volumes containing absolutely zero STE. Not low concentration, not minimal — the complete absence of substrate. Bubbles of nothing held open by the surrounding compressed STE shell, sustained by the same geometry that holds a black hole open at astronomical scale.
+
+### The Field In Between
+
+STE attraction field lines radiate throughout the proton, all converging toward the Spike. Chokes (micro-vortices) form continuously wherever the flow is disrupted — blue squiggles of frustrated attraction scattered through the red field lines, each one cycling through its lifespan (formation → lift-off → drift → dissolution).
+
+### The Attraction Shadow — Where the Electron Lives
+
+The void cores **block** the Spike's attractive pull along certain axes, creating **attraction shadows** — regions beyond the nucleus where net inward pull is reduced. In these shadows, the tension gradient is gentle enough that micro-vortices can persist at a greater radius without being pulled in or stripped apart.
+
+This is where the electron lives. The electron swarm doesn't occupy a uniform shell around the proton — it preferentially fills the shadow zones where the void cores interrupt the Spike's pull. The triangular geometry (two void cores + one Spike) produces a characteristic shadow pattern that maps directly to observed electron orbital shapes.
+
+The "hair" visible at the top of the proton — the region where void cores partially block the Spike — is the doorway to the electron's coherence zone: far enough from the core that micro-vortex swarms can sustain themselves, structured by the geometry of what's underneath.
+
+---
+
+## The Void — Up Quarks and Black Holes Are the Same Thing
+
+A void is not low-concentration STE. It is not "almost empty" space. It is a volume containing **absolutely zero STE** — a bubble of nothing inside a substrate of existence.
+
+Voids form when STE's self-attraction converges so intensely on a region that it **evacuates the centre entirely**. The substrate pulls itself inward and away, leaving a true cavity. The surrounding STE — now under extreme compression — wraps the void as a shell and sustains it.
+
+This is scale-invariant:
+
+- **Up quarks** (void cores inside protons) are sub-femtometre cavities held open by the surrounding QGP-like shell.
+- **Black holes** are astronomical-scale cavities held open by the surrounding accretion structure of maximally compressed STE.
+
+The difference is size, not kind. In both cases the void itself contains nothing — no concentration, no flow, no attraction, no interaction. Everything we detect (gravitational lensing, attraction shadows, orbital geometry) comes from the **shell**, not the void. The void is invisible; the shell is what we measure.
+
+This is the ultimate expression of A4 (observability is failure): attraction so successful that it creates the absolute absence of substrate at the centre — and even that absence is something we can only see indirectly, by its effect on the shell around it.
+
+### Why Light Exists
+
+The difference between a choke (a depression — low STE, but not zero) and a void (absolute zero STE) is what gives rise to light.
+
+The shell wrapping a void is compressed to the **true maximum** — because it borders literal nothing. There is no gentler gradient; the contrast is total. This maximum-contrast boundary radiates: when disturbed, the extreme compression at the void/shell interface sheds irreconcilable tension outward as a propagating wave — a **photon**.
+
+Light exists because the void forces its shell to absolute maximum compression, and that maximum has nowhere to relax to except outward, as radiation. Every photon traces back to a void/shell boundary event.
+
+### How Black Holes Grow
+
+Black holes do not grow by consuming STE. They grow by consuming the **void space inside matter**.
+
+When matter falls toward a black hole, the black hole absorbs the void cores (up quarks) within the incoming particles. Only another void touching the existing void can cause the shell to realign around the new, larger cavity. Void merges with void; the shell reorganises around the expanded nothing.
+
+The STE that *was* the matter — the compressed shells, the tension fields, the choke swarms — is not absorbed. It has nowhere to go inside a void (there is no STE there to attract it). Instead, its bound structure dissolves and the freed STE is cast off as **accretion radiation** — the brilliant debris of matter that lost its void cores.
+
+This is why accretion disks are so luminous: they are the entire STE content of infalling matter being disillusioned and radiated away. The black hole keeps only the nothing.

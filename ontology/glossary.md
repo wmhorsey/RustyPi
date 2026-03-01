@@ -119,8 +119,43 @@ The highest-concentration STE state in the ontology — analogous to a quark-glu
 
 ### Free-Flow Regime
 
-The lowest-concentration end of the spectrum: STE spread thinly across large distances, flowing freely toward nearby concentrations. Experienced as open, "empty" space.
+Low-concentration STE spread thinly across large distances, flowing freely toward nearby concentrations. Experienced as open, "empty" space — but not void. Free-flow regions still contain STE; they are simply the least concentrated part of the substrate. Below this on the spectrum is true void (cavitation), which contains no STE at all.
 
 ### Equilibrium
 
 The state a local region of STE converges toward when attraction, concentration, and choke balance. Equilibria may be disrupted (energy input or removal) but the system always seeks the nearest available balance point.
+
+### Spike (Down Quark)
+
+The peak STE concentration at the centre of a proton. All internal tension lines converge on the Spike — it is the primary attractor that holds the baryon together. Named for its role as the sharpest, deepest compression point in the structure.
+
+### Void Core (Up Quark)
+
+A cavitated substrate void within a proton — a volume containing **absolutely zero STE**. Not low concentration, not minimal — the complete absence of substrate. A bubble of nothing held open by the surrounding compressed STE shell. Two void cores + one Spike form the triangular geometry of the proton. Void cores are the same phenomenon as black holes, differing only in scale (see Void / Cavitation).
+
+### Attraction Shadow
+
+A region beyond the nucleus where net inward pull is reduced because a void core sits between the Spike and the exterior, interrupting the tension lines. The attraction shadow is where the tension gradient is gentle enough for micro-vortex swarms (electrons) to persist. Electron orbital geometry is shaped by the shadow pattern cast by the proton's internal void core arrangement.
+
+### Void / Cavitation
+
+A volume of space containing **absolutely zero STE** — not low concentration, not minimal motion, but the complete absence of substrate. A bubble of nothing inside a substrate of existence.
+
+Voids form when STE self-attraction converges so intensely that it evacuates the centre entirely. The surrounding STE wraps the cavity as a maximally compressed shell and sustains it. The void is not the attractor — the shell is. Everything we detect comes from the shell's tension field.
+
+Cavitation is scale-invariant:
+
+- **Sub-femtometre** → up quark (void core inside a proton)
+- **Astronomical** → black hole (void wrapped in accretion shell)
+
+The difference is size, not kind. The cavitation event compresses the surrounding shell to the **true maximum** — because it borders absolute zero, the contrast is total. This maximum-compression boundary is the origin of light.
+
+### Light / Photon
+
+A propagating wave of tension radiated from a void/shell boundary. Light exists because the shell wrapping a void is at **absolute maximum compression** (it borders zero STE), and that extreme contrast has nowhere to relax except outward. When the void/shell interface is disturbed, the irreconcilable tension propagates through the substrate as a photon.
+
+Every photon traces back to a void/shell boundary event. Light is the substrate shedding tension it cannot hold.
+
+### Black Hole Growth
+
+Black holes grow by consuming **void space within matter**, not the matter (STE) itself. When matter falls in, the black hole absorbs the void cores (up quarks) from the incoming particles — only void touching void causes the shell to realign around the new, larger cavity. The STE that comprised the matter's structure is not absorbed; it is disillusioned (dissolved from its bound structure) and cast off as **accretion radiation**. The accretion disk is the debris of dissolved matter. The black hole keeps only the nothing.
