@@ -12,6 +12,10 @@ The sole substance of the universe. A finite, self-attracting potential fluid th
 
 *STE moves toward itself.* The one and only dynamical principle. No auxiliary forces, coupling constants, or separate mediator particles are postulated.
 
+### Observability / Secondary Effect
+
+We never see attraction itself — only its **secondary effects** when attraction is frustrated. Successful attraction is invisible: STE flowing freely toward STE produces no signal. Particles, heat, light, and every other observable phenomenon emerge only where attraction **fails** to fully resolve. The universe we measure is made entirely of frustrated attraction.
+
 ### Concentration
 
 The local density of STE in a region. Concentration is a relative, dimensionless measure — the ontology is scale-free and does not require absolute units. Low concentration corresponds to open space; high concentration corresponds to dense matter.
@@ -70,7 +74,7 @@ The interaction force experienced when **two** STE concentrations attract each o
 
 ### Heat (Thermal Energy)
 
-The observable signature of choked STE nodes. These nodes cannot flow freely but retain vibrational/kinetic energy. What we measure as temperature is the degree of choke agitation in a population of STE nodes.
+A secondary effect of frustrated attraction. Choked STE nodes cannot flow freely but retain vibrational/kinetic energy. What we measure as temperature is the degree of choke agitation in a population of STE nodes — the visible residue of attraction that could not resolve into motion.
 
 ### Convection (Heat Rises)
 
@@ -93,7 +97,7 @@ Electrons "come from" the substrate's natural tendency to form and sustain micro
 
 ### Discrete Structure
 
-Any stable or metastable pattern (particle, atom, shell, standing wave) that forms when local concentration conditions permit STE to organise. The substrate is inherently constructive — it always attempts to clump and build.
+Any stable or metastable pattern (particle, atom, shell, standing wave) that forms when STE's attraction cannot fully resolve into flow. The substrate wants to collect into a single point; when it cannot, the failure crystallises into structure. Every particle is a monument to frustrated attraction — and the reason we can see it is precisely *because* it is a failure mode (successful attraction is invisible).
 
 ### Self-Regulation
 

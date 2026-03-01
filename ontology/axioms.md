@@ -32,6 +32,14 @@ The complete axiomatic foundation. Everything in the ontology is derived from th
 - This is not independent of A1; it is the first-order consequence. Mutual attraction in a dense region creates opposing pull vectors that resist net motion.
 - Stated as an axiom for clarity when building derivations.
 
+## A4 — Observability Is Failure
+
+> We never see attraction itself. We see only the **secondary effects** of attraction being frustrated.
+
+- Like gravity, we observe the *effect* — not the force.
+- STE wants to be in one place, but cannot. Particles, heat, light, and every other observable phenomenon are what happens when attraction fails to fully resolve.
+- Successful attraction is invisible: STE flowing toward STE produces no signal. Only when flow is resisted — when collection fails — do secondary effects emerge that we can detect and measure.
+
 ---
 
 # STE Ontology — Derivations
@@ -42,14 +50,14 @@ Logical consequences of the axioms, building from simple to complex.
 
 ## D1 — Compression
 
-**From:** A1 (self-attraction), A2 (variable concentration), A3 (viscosity)
+**From:** A1 (self-attraction), A2 (variable concentration), A3 (viscosity), A4 (observability)
 
 Consider a boundary surface inside a region of concentrated STE. STE on side A attracts STE on side B, and vice versa. If the geometry is such that bulk flow cannot resolve the attraction (e.g., attraction is roughly symmetric from all directions), then:
 
-- Attraction that **can** produce motion → **flow** (STE moves toward itself).
-- Attraction that **cannot** produce motion → **compression** (pressure increases, concentration increases further).
+- Attraction that **can** produce motion → **flow** (STE moves toward itself). This is invisible (A4).
+- Attraction that **cannot** produce motion → **compression** (pressure increases, concentration increases further). This is where secondary effects begin.
 
-Compression is attraction's fallback mode.
+Compression is attraction's fallback mode — the first failure to collect, and the first thing we can detect.
 
 ---
 
@@ -105,12 +113,12 @@ This is why:
 
 ## D6 — Heat as Choke Signature
 
-**From:** D2
+**From:** D2, A4
 
 Choked STE nodes retain vibrational kinetic energy but cannot flow. The aggregate behaviour of many choked nodes is what we measure as **thermal energy / heat**.
 
 - Temperature ∝ degree of choke agitation.
-- Heat is not a substance; it is the kinetic residue of choked STE.
+- Heat is not a substance; it is a secondary effect (A4) — the visible residue of attraction that could not resolve into flow.
 
 ---
 
@@ -130,9 +138,11 @@ Active (unchoked) STE has higher effective attraction per unit volume than choke
 
 ## D8 — Discrete Structure Formation
 
-**From:** A1, A2, D1, D2
+**From:** A1, A2, A4, D1, D2
 
-Self-attraction is inherently constructive. Wherever local conditions permit — a resonance, a standing-wave condition, a sufficient concentration gradient — STE will attempt to **organise into discrete structure** (shells, nodes, particles).
+Self-attraction is inherently constructive. Wherever local conditions permit — a resonance, a standing-wave condition, a sufficient concentration gradient — STE will attempt to collect into a single point. When it **cannot** (because attraction from all sides creates competing vectors), the failure crystallises into **discrete structure** (shells, nodes, particles).
+
+Every particle is a monument to frustrated attraction — STE that wanted to be in one place but could not get there.
 
 ---
 

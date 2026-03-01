@@ -10,6 +10,18 @@ The entirety of the observable universe is composed of one substance: **STE** �
 
 That is the complete dynamics. There are no additional forces, no separate field carriers, no bolted-on constants. Everything below follows from this one behaviour applied recursively at every scale.
 
+## What We Actually See
+
+We never observe attraction directly — just as with gravity, we see only the *effect*, never the force itself. Successful attraction is invisible: STE flowing freely toward STE produces no signal, no particle, no photon.
+
+Everything we can detect — particles, heat, light, mass, structure — is a **secondary effect** of attraction being frustrated. STE wants to be in one place, but it cannot. The entirety of observable existence is what happens when that collective pull toward unity fails to fully resolve:
+
+- **Failure to flow** → compression, structure, particles
+- **Failure to collect** → chokes, heat radiation
+- **Failure to hold** → light, photon emission
+
+The universe we measure is made entirely of frustrated attraction.
+
 ---
 
 ## From Rule to Structure
@@ -74,7 +86,9 @@ Choked nodes are lesser-attracting, so active STE is preferentially pulled inwar
 
 ## Discrete Structure & Self-Regulation
 
-As soon as local conditions create an opportunity for discrete measurement — a boundary, a standing-wave condition, a sufficient concentration gradient — the substrate **attempts to build structure**. STE's self-attraction is inherently constructive; it wants to clump, to compress, to form shells and nodes.
+As soon as local conditions create an opportunity for discrete measurement — a boundary, a standing-wave condition, a sufficient concentration gradient — STE attempts to collect into a single point. When it **cannot** (because attraction pulls from all sides simultaneously, creating competing vectors), the failure crystallises into **structure**. Every particle, shell, and node is a monument to frustrated attraction — STE that wanted to be in one place but could not get there.
+
+This is why we can see matter at all: successful attraction is invisible; only failure radiates, structures, and persists as something measurable.
 
 Under normal circumstances, this constructive tendency is **held in check by itself**. The same attraction that drives concentration also creates the choke that limits further concentration. The system is self-regulating:
 
