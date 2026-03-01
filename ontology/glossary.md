@@ -150,19 +150,27 @@ Cavitation is scale-invariant:
 
 The difference is size, not kind. The cavitation event compresses the surrounding shell to the **true maximum** — because it borders absolute zero, the contrast is total. This maximum-compression boundary is the origin of light.
 
-### Light / Photon
+### Light (Photon Wave)
 
-Light is a **disturbance in the field tension itself**. It originates at void/shell boundaries (Planck-length, deep inside particles), where the shell is at **absolute maximum compression** (it borders zero STE) and the contrast is total. Nothing actually moves — the tension pattern updates through a field that is already everywhere. This is why light is unrestricted.
+Light is a **wave of attraction** — a propagating modulation of the pull that STE exerts on itself. It originates at void/shell boundaries (Planck-length, deep inside particles), where the shell is at **absolute maximum compression** (it borders zero STE) and the contrast is total. Nothing actually moves — the attraction pattern updates through a field that is already everywhere. This is why light is unrestricted.
 
-Every micro-vortex structure in the substrate — bound electron clouds, free electrons, pre-particle clusters, lone chokes — participates in light the same way: the compression squeezes it tighter (elevates it above its natural shell level), it relaxes back home, and the energy difference is shed outward.
+Light is **not a vortex**. It is the pull itself fluctuating. The vortex only appears when the attraction wave interacts with a structure (see Photon Particle below).
+
+Every micro-vortex structure in the substrate — bound electron clouds, free electrons, pre-particle clusters, lone chokes — relays light the same way: the modulated attraction squeezes it tighter (elevates it above its natural shell level), it relaxes back home, and the energy difference is shed outward as a fresh attraction modulation.
 
 Light has three distinct phases:
 
-- **Emission** — A void/shell disturbance propagates into the local **electron cloud**. The field compression squeezes the swarm inward to a higher shell level. The cloud relaxes back to its natural coherence radius, shedding the energy difference outward. Emission is a squeeze-and-release.
-- **Travel (propagation within field stress)** — The disturbance propagates within the STE field stress — not through it, but *in* it. Every micro-vortex structure it encounters does the same thing: compress, elevate, relax, re-emit. Each relay adds a little of its own energy on the release. Light propagates forever because nothing is actually moving; the field is already there and the stress pattern simply shifts, **relayed** by rotational structures at every scale.
-- **Capture (collapse event / photon)** — When the disturbance squeezes a structure to a higher shell level and it **stays there** — accommodating the tension instead of relaxing back — the wave terminates. The photon is this collapse event: the moment of final absorption.
+- **Emission** — A void/shell disturbance sends an attraction modulation into the local **electron cloud**. The modulated pull squeezes the swarm inward to a higher shell level. The cloud relaxes back to its natural coherence radius, shedding the energy difference outward. Emission is a squeeze-and-release.
+- **Travel** — The attraction modulation propagates through the STE field — not a particle in flight, but the pull pattern itself updating. Every micro-vortex structure it encounters does the same thing: compress, elevate, relax, re-emit. At each relay, a **transient photon particle** (vortex) forms and vanishes as the structure relaxes back. Light propagates forever because nothing is actually moving; the field is already there and the attraction pattern simply shifts.
+- **Capture** — When the attraction modulation squeezes a micro-vortex structure to a higher shell level and it **stays there** — accommodating the tension instead of relaxing back — the wave terminates. The **photon particle** at this final interaction persists: the structure keeps the vortex instead of relaxing.
 
-Wave-particle duality: the wave is a tension disturbance propagating within the field stress, relayed from structure to structure; the photon is the collapse that ends it. Light doesn't really move — only the disturbance pattern changes.
+### Photon Particle
+
+The **photon particle** is NOT the light wave. It is the transient vortex that forms when a light wave (attraction modulation) interacts with a micro-vortex node. The wave modulates the local pull; the node responds by producing a vortex.
+
+- During **travel**, each relay creates a momentary photon particle that vanishes as the node relaxes back.
+- At **capture**, the photon particle persists — the node stays at its elevated shell level.
+- We never observe the wave itself (A4) — we observe the vortex at the interaction point. Every detection of light is a particle detection.
 
 ### Black Hole Growth
 
