@@ -154,13 +154,13 @@ The difference is size, not kind. The cavitation event compresses the surroundin
 
 Light is a **disturbance in the field tension itself**. It originates at void/shell boundaries (Planck-length, deep inside particles), where the shell is at **absolute maximum compression** (it borders zero STE) and the contrast is total. Nothing actually moves — the tension pattern updates through a field that is already everywhere. This is why light is unrestricted.
 
-Every micro-vortex structure in the substrate — bound electron clouds, free electrons, pre-particle clusters, lone chokes — participates in light the same way: it absorbs the compression disturbance, resists it, and re-emits, adding just a little of its own energy back.
+Every micro-vortex structure in the substrate — bound electron clouds, free electrons, pre-particle clusters, lone chokes — participates in light the same way: the compression squeezes it tighter (elevates it above its natural shell level), it relaxes back home, and the energy difference is shed outward.
 
 Light has three distinct phases:
 
-- **Emission** — A void/shell disturbance propagates into the local **electron cloud**. The swarm absorbs the compression wave and resists it — unable to accommodate the tension, it re-radiates. Emission is the cloud shedding what it cannot hold.
-- **Travel (propagation within field stress)** — The disturbance propagates within the STE field stress — not through it, but *in* it. Every micro-vortex structure it encounters does the same thing: compress, resist, re-emit. Light propagates forever because nothing is actually moving; the field is already there and the stress pattern simply shifts, **relayed** by rotational structures at every scale.
-- **Capture (collapse event / photon)** — When the disturbance hits a structure that absorbs without re-emitting — one that accommodates the tension instead of resisting — the wave terminates. The photon is this collapse event: the moment of final absorption.
+- **Emission** — A void/shell disturbance propagates into the local **electron cloud**. The field compression squeezes the swarm inward to a higher shell level. The cloud relaxes back to its natural coherence radius, shedding the energy difference outward. Emission is a squeeze-and-release.
+- **Travel (propagation within field stress)** — The disturbance propagates within the STE field stress — not through it, but *in* it. Every micro-vortex structure it encounters does the same thing: compress, elevate, relax, re-emit. Each relay adds a little of its own energy on the release. Light propagates forever because nothing is actually moving; the field is already there and the stress pattern simply shifts, **relayed** by rotational structures at every scale.
+- **Capture (collapse event / photon)** — When the disturbance squeezes a structure to a higher shell level and it **stays there** — accommodating the tension instead of relaxing back — the wave terminates. The photon is this collapse event: the moment of final absorption.
 
 Wave-particle duality: the wave is a tension disturbance propagating within the field stress, relayed from structure to structure; the photon is the collapse that ends it. Light doesn't really move — only the disturbance pattern changes.
 
