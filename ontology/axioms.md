@@ -278,11 +278,29 @@ Critically, light is a **wave of attraction** — a propagating modulation of th
 
 Light has three distinct phases:
 
+Driving-wave collapse statement:
+- Light is the collapse-and-reformation cycle of a driving attraction-wave structure.
+- The wave drives local shell elevation at each relay node.
+- Observable photons appear where that driven structure collapses into a vortex event.
+- Travel corresponds to repeated transient collapse/reformation; capture is terminal collapse without re-emission.
+
 1. **Emission** (squeeze-and-release) — A disturbance at the void/shell boundary sends an attraction modulation outward through the proton's internal field and into the electron cloud. The modulated pull **squeezes the electron cloud tighter** — the micro-vortex swarm is compressed inward to a higher shell level than its natural coherence radius. The cloud cannot stay there; it is above its equilibrium. It **relaxes back home** to its natural radius, and the energy difference — the gap between the elevated shell and the equilibrium shell — is shed outward as a fresh attraction modulation. Emission is squeeze-and-release: compress in, relax back, radiate the difference.
 2. **Travel** (relay through field) — The attraction modulation propagates through the STE field — not a particle in flight, but the pull pattern itself updating. As the modulation encounters micro-vortex structures along its path — bound electron clouds, free electrons, pre-particle clusters, even lone chokes — each one does the same thing: the modulated attraction **squeezes it tighter**, elevating it above its natural shell level, and it **relaxes back home**, shedding the energy difference outward. At each relay, the interaction between the attraction wave and the node produces a **transient photon particle** — a momentary vortex that appears and vanishes as the structure relaxes back. This is why light travels forever: each relay adds a little of its own energy back on the release, and because nothing is actually moving (the attraction pattern is simply updating through a field that is already there), it propagates unrestricted. The substrate is threaded with micro-vortices at every scale; there is always another relay waiting.
 3. **Capture** (permanent photon particle) — When the attraction modulation encounters a micro-vortex structure that **does not relax back** — when the modulated pull squeezes it to a higher shell level and it stays there, accommodating the tension instead of releasing it — the wave terminates. The structure absorbs the energy without re-emitting. The vortex produced by this final interaction **persists** — this is the photon particle that we detect: not the wave, but the vortex born from the wave's last interaction with a node.
 
+Intersection and reflection behavior:
+- When two or more attraction waves intersect at a relay node (often an electron cloud), their tensions superpose and produce a deeper temporary compression of that node's shell.
+- The node then relaxes; this relaxation is experienced as effective repulsion between the compressed quasi-particle structures, and the release re-injects tension into outbound relays.
+- If the node remains in the transient regime, this becomes scattering/reflective re-emission: the outgoing wave preserves the incoming tension/torsion signature, but phase and amplitude are modified by all coincident waves at that node.
+- If the node crosses the non-relaxing threshold, the same intersection process ends in terminal capture (persistent photon-particle event).
+
 Wave-particle duality is not mysterious in this ontology. The **wave** is an attraction modulation propagating through the field, relayed from structure to structure. The **particle** is the vortex that forms at every interaction point between wave and node. During travel, each relay produces a transient particle that vanishes as the node relaxes. At capture, the particle persists. We never observe the wave itself (A4) — we observe the vortex it creates at the point of interaction. This is why every detection of light is a particle detection: to see it is to interact with it, and the interaction is where the vortex lives.
+
+Operational signatures for simulation:
+1. Relay collapse count should scale with optical path complexity.
+2. Transient relay vortices should have finite lifetimes and bounded shell overshoot.
+3. Capture events should coincide with non-relaxing shell elevation and termination of downstream relays.
+4. Energy bookkeeping should close: emitted wave budget = relay losses + captured shell elevation + residuals.
 
 ---
 

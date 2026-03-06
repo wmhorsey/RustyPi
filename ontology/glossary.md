@@ -154,6 +154,10 @@ The difference is size, not kind. The cavitation event compresses the surroundin
 
 Light is a **wave of attraction** — a propagating modulation of the pull that STE exerts on itself. It originates at void/shell boundaries (Planck-length, deep inside particles), where the shell is at **absolute maximum compression** (it borders zero STE) and the contrast is total. Nothing actually moves — the attraction pattern updates through a field that is already everywhere. This is why light is unrestricted.
 
+Equivalent phrasing used in this project:
+- Light is the collapse of the driving wave structure at relay nodes.
+- The driving wave is the attraction modulation; the collapse product is the local photon-particle vortex event.
+
 Light is **not a vortex**. It is the pull itself fluctuating. The vortex only appears when the attraction wave interacts with a structure (see Photon Particle below).
 
 Every micro-vortex structure in the substrate — bound electron clouds, free electrons, pre-particle clusters, lone chokes — relays light the same way: the modulated attraction squeezes it tighter (elevates it above its natural shell level), it relaxes back home, and the energy difference is shed outward as a fresh attraction modulation.
@@ -163,6 +167,11 @@ Light has three distinct phases:
 - **Emission** — A void/shell disturbance sends an attraction modulation into the local **electron cloud**. The modulated pull squeezes the swarm inward to a higher shell level. The cloud relaxes back to its natural coherence radius, shedding the energy difference outward. Emission is a squeeze-and-release.
 - **Travel** — The attraction modulation propagates through the STE field — not a particle in flight, but the pull pattern itself updating. Every micro-vortex structure it encounters does the same thing: compress, elevate, relax, re-emit. At each relay, a **transient photon particle** (vortex) forms and vanishes as the structure relaxes back. Light propagates forever because nothing is actually moving; the field is already there and the attraction pattern simply shifts.
 - **Capture** — When the attraction modulation squeezes a micro-vortex structure to a higher shell level and it **stays there** — accommodating the tension instead of relaxing back — the wave terminates. The **photon particle** at this final interaction persists: the structure keeps the vortex instead of relaxing.
+
+Intersection and reflection rule:
+- Multiple waves can intersect at one node (commonly an electron cloud), causing a deeper temporary shell compression.
+- The node relaxes and re-emits; this release behaves as effective repulsion of the compressed quasi-particle structure and reinforces outbound wave relays.
+- Reflection/scattering carries the incoming tension-torsion imprint, modified by phase/amplitude interference from other coincident waves at that node.
 
 ### Photon Particle
 
