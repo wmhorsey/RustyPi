@@ -114,6 +114,24 @@ Goal: withstand skeptical review.
 Exit criteria:
 - third party can rerun and reproduce headline plots.
 
+## Branch Strategy (Dual Track)
+Active branches:
+- `physics-refine`: ontology + diagnostics + closure work.
+- `game-dev`: gameplay loop, UX, progression, content, economy.
+
+Workflow rules:
+- `physics-refine` may change engine math and diagnostics only.
+- `game-dev` consumes stable exported metrics/APIs and should avoid depending on unstable internals.
+- Merge direction is one-way by default:
+  - `main` <- `physics-refine` (after diagnostics gates pass)
+  - `main` <- `game-dev` (after gameplay acceptance passes)
+- If `game-dev` needs new telemetry, add it in `physics-refine` behind stable interfaces.
+- Keep ontology guardrails enforced on both branches.
+
+Release policy:
+- Public builds default to stable gameplay mechanics.
+- Experimental physics mode is opt-in until diagnostics confidence gates are met.
+
 ## Change Protocol (To Avoid Regressions)
 For each physics change:
 1. State hypothesis.
@@ -128,10 +146,10 @@ For each physics change:
 - Boundary conditions for science runs (reduce visual-mode recycle bias).
 
 ## Short-Term Next Actions
-1. Add chirality oscillator diagnostics test/report (`chi`, zero-crossings, lock duration).
-2. Add persisted diagnostics artifact output (CSV/JSON) for replay + analysis.
-3. Add compound coexistence report (pairs/dwell/potential/yield over time).
-4. Build first automated baseline report from diagnostics tests.
+1. `physics-refine`: commit and tag current diagnostics milestone.
+2. `physics-refine`: define confidence gates for merge to `main` (AR residual, STE drift, scale baseline).
+3. `game-dev`: scaffold game architecture around a stable simulation adapter interface.
+4. `game-dev`: implement first publishable core loop using current stable metrics.
 
 ## Scope Recovery Checklist
 If context is compressed, resume in this order:
@@ -139,4 +157,5 @@ If context is compressed, resume in this order:
 2. Re-assert Ontology Guardrails before making any physics edits.
 3. Confirm current physics stack still matches "Current State" above.
 4. Run diagnostics baseline.
-5. Continue from "Short-Term Next Actions" item 1.
+5. Confirm branch roles (`physics-refine` vs `game-dev`) before coding.
+6. Continue from "Short-Term Next Actions" item 1.
