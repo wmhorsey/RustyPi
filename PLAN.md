@@ -50,6 +50,8 @@ Implemented:
 - baseline scale-invariance integration test (`tests/scale_invariance.rs`),
 - compound coexistence diagnostics in HUD (`pairs`, `dwell`, `pot`, `yield`),
 - chirality diagnostics in HUD (`chi`, `zc`, `lock`).
+- qubit-like threshold probe artifacts (`qubit_emergence.csv`, `qubit_emergence_summary.json`) with gates for low/high drive separation and mixed-window detection.
+- qubit-like calibration thresholds extracted per run (`E10`, `E50`, `E90`) plus guard bands (`E50` band and transition-width band) to catch control-regime drift.
 
 Known caveats:
 - pressure channel is early-stage and intentionally conservative (gradient-driven only) to preserve baseline attraction tests,
