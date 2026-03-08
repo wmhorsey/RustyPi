@@ -6,7 +6,7 @@
 
 ## One Substance, One Rule, Zero Exceptions
 
-The universe is a closed bubble containing a finite quantity of a single substance: **STE** (Space-Time Energy). STE obeys exactly one rule:
+Existence can include regions with no STE. Within it, our observable domain is a finite conserved distribution of **STE** (Space-Time Energy). STE obeys exactly one rule:
 
 > **It moves toward itself.**
 
@@ -74,6 +74,18 @@ The choke mechanism is **scale-invariant**:
 | Quark boundary | U-quark void | QGP burner surface | Quantized QGP shell parcel |
 
 Same mechanism, three scales. The only variable is the intensity of the gradient driving the wrap-around.
+
+### Recursive Shell Topology
+
+A choke does not exist as an isolated point event. It sits inside a recursive field profile:
+
+1. **Depression core**: lower local attractability at the center.
+2. **Shell crest**: a surrounding peak where concentration/tension are highest.
+3. **Outer ambient**: lower than the shell crest outside the peak, but still coupled to it.
+
+This depression-shell-ambient pattern can repeat across nested scales. A shell at one level can be the ambient or sub-shell of another level. No new force is introduced; recursion is the geometric result of attraction repeatedly failing to fully collect under local constraints.
+
+The practical implication is that "stable" objects can still have active internal recursion: inward pull and outward support can coexist across multiple shell layers without violating the one-rule ontology.
 
 ### What the Choke Changes
 

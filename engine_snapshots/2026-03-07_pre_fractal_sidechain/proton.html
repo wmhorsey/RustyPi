@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>STE Proton — UUD Shadow Experiment</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #050510;
+    color: #ccc;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    cursor: grab;
+  }
+  canvas.dragging { cursor: grabbing; }
+  #hud-shell {
+    position: fixed;
+    top: 12px;
+    left: 16px;
+    width: min(94vw, 1060px);
+    background: rgba(8, 10, 24, 0.88);
+    border: 1px solid rgba(108, 204, 255, 0.3);
+    border-radius: 8px;
+    backdrop-filter: blur(6px);
+    padding: 8px 10px;
+    z-index: 10;
+  }
+  #hud-shell.collapsed #hud {
+    display: none;
+  }
+  #hud-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 6px;
+    gap: 8px;
+  }
+  #hud-title {
+    flex: 0 0 auto;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7fb8d2;
+    opacity: 0.85;
+  }
+  #hud-states {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 11px;
+    color: #bdd6eb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: Consolas, 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  #hud-toggle {
+    flex: 0 0 auto;
+    border: 1px solid rgba(108, 204, 255, 0.35);
+    background: rgba(12, 18, 34, 0.92);
+    color: #bfe8ff;
+    border-radius: 4px;
+    font-size: 11px;
+    padding: 3px 8px;
+    cursor: pointer;
+  }
+  #hud {
+    font-size: 12px;
+    line-height: 1.45;
+    font-family: Consolas, 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 0 6px #000;
+    overflow-x: auto;
+  }
+  #hud .hud-row {
+    white-space: nowrap;
+    margin: 1px 0;
+  }
+  #hud .hud-section {
+    border-top: 1px solid rgba(108, 204, 255, 0.18);
+    padding-top: 4px;
+    margin-top: 4px;
+  }
+  #hud .hud-section:first-child {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+  #hud .hud-section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #8ab9d4;
+    opacity: 0.9;
+    margin-bottom: 2px;
+  }
+  #hud .sep {
+    color: rgba(173, 214, 255, 0.4);
+    padding: 0 8px;
+  }
+  #hud b { color: #6cf; }
+  #legend {
+    position: fixed;
+    bottom: 60px;
+    left: 16px;
+    font-size: 12px;
+    line-height: 1.8;
+    pointer-events: none;
+    text-shadow: 0 0 6px #000;
+  }
+  .leg-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+    vertical-align: middle;
+  }
+  #controls {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    font-size: 12px;
+    opacity: 0.6;
+  }
+  /* ── Info panel ── */
+  #panel {
+    position: fixed;
+    top: 12px;
+    right: 16px;
+    width: 260px;
+    background: rgba(8, 8, 20, 0.94);
+    border: 1px solid rgba(100, 180, 255, 0.25);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    display: none;
+    backdrop-filter: blur(8px);
+  }
+  #panel.visible { display: block; }
+  #panel h3 { color: #6cf; margin: 0 0 8px 0; font-size: 14px; }
+  #panel .row { display: flex; justify-content: space-between; }
+  #panel .row .label { color: #888; }
+  #panel .row .value { color: #eee; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud-shell">
+  <div id="hud-toolbar">
+    <span id="hud-title">Telemetry</span>
+    <span id="hud-states"></span>
+    <button id="hud-toggle" type="button" aria-expanded="true">Collapse</button>
+  </div>
+  <div id="hud"></div>
+</div>
+<div id="legend">
+  <div><span class="leg-dot" style="background:#ffdd44"></span><b>D</b> — down quark — pure STE spike (white-hole)</div>
+  <div><span class="leg-dot" style="background:#cc7722"></span><b>U</b> — void-core depression candidate (black-hole anchor)</div>
+  <div><span class="leg-dot" style="background:#cc2222"></span>High chaos — dense/frozen QGP (red)</div>
+  <div><span class="leg-dot" style="background:#7744cc"></span>Mid tension — outflowing field (purple)</div>
+  <div><span class="leg-dot" style="background:#4488cc"></span>Low chaos — <b>shadow zone</b> (calm blue)</div>
+  <div><span class="leg-dot" style="background:#ff7744"></span>Pressure halo — saturation front (pre-contact)</div>
+  <div><span class="leg-dot" style="background:#ffaa22"></span>Vorticity glow — relative to local average</div>
+  <div><span class="leg-dot" style="background:#44ff88"></span><b>Matter</b> choke — Formation → Drift lifecycle</div>
+  <div><span class="leg-dot" style="background:#ff44dd"></span><b>Antimatter</b> choke — opposite spin</div>
+  <div><span class="leg-dot" style="background:#ff4444; opacity:0.5"></span>Dissolution — choke losing coherence</div>
+  <div><span class="leg-dot" style="background:#88ffaa"></span>Anchored depression — ambient &gt; core with coherent shell</div>
+  <div><span class="leg-dot" style="background:#ff9966"></span>Inside-out bubble — shell exists while ambient &lt;= core</div>
+</div>
+<div id="controls">
+  SPACE = pause &nbsp; +/- = speed &nbsp;
+  Scroll = zoom &nbsp; Drag = orbit &nbsp;
+  Shift+Drag = pan &nbsp; Click = select &nbsp; F = focus &nbsp; H = home (toggle) &nbsp; T = telemetry &nbsp; G = wisps &nbsp; N = active-net &nbsp; R = reset &nbsp; ← / → = step back/fwd
+</div>
+<div id="panel">
+  <h3>Parcel <span id="p-id">—</span> <span id="p-role" style="font-size:11px; opacity:0.7"></span></h3>
+  <div class="row"><span class="label">STE amount</span><span class="value" id="p-ste">—</span></div>
+  <div class="row"><span class="label">Concentration</span><span class="value" id="p-conc">—</span></div>
+  <div class="row"><span class="label">Speed</span><span class="value" id="p-speed">—</span></div>
+  <div class="row"><span class="label">Eff. mass</span><span class="value" id="p-mass">—</span></div>
+  <div class="row"><span class="label">Shell level</span><span class="value" id="p-shell">—</span></div>
+  <div class="row"><span class="label">Vorticity</span><span class="value" id="p-vort">—</span></div>
+  <div class="row"><span class="label">Choke phase</span><span class="value" id="p-choke">—</span></div>
+  <div class="row"><span class="label">Coherence</span><span class="value" id="p-coher">—</span></div>
+</div>
+
+<script type="module">
+import init, { WasmSim } from './pkg/mass_effect_engine.js';
+
+async function main() {
+  await init();
+
+  const N_FIELD = 260;
+  let sim = WasmSim.new_proton(N_FIELD);
+  let N = sim.parcel_count();
+
+  const canvas = document.getElementById('c');
+  const ctx    = canvas.getContext('2d');
+  const hud    = document.getElementById('hud');
+  const hudStates = document.getElementById('hud-states');
+  const hudShell = document.getElementById('hud-shell');
+  const hudToggle = document.getElementById('hud-toggle');
+  const panel  = document.getElementById('panel');
+
+  let paused = false;
+  let speed = 1.0;
+  let stepAccum = 0;
+  let hudCollapsed = false;
+
+  function setHudCollapsed(collapsed) {
+    hudCollapsed = collapsed;
+    hudShell.classList.toggle('collapsed', hudCollapsed);
+    hudToggle.textContent = hudCollapsed ? 'Expand' : 'Collapse';
+    hudToggle.setAttribute('aria-expanded', hudCollapsed ? 'false' : 'true');
+  }
+
+  hudToggle.addEventListener('click', () => setHudCollapsed(!hudCollapsed));
+
+  // ── Frame history buffer (50 frames for scrubbing) ──
+  const HISTORY_MAX = 50;
+  let frameHistory = []; // array of snapshot objects
+  let historyIdx = -1;  // -1 = live, 0..N-1 = viewing history
+
+  function optionalFloatArray(simRef, methodName, fallbackLength) {
+    const m = simRef[methodName];
+    if (typeof m === 'function') {
+      return new Float64Array(m.call(simRef));
+    }
+    return new Float64Array(fallbackLength);
+  }
+
+  function snapshotFrame(simRef) {
+    const concs = new Float64Array(simRef.concentrations());
+    const n = simRef.parcel_count();
+    return {
+      tick:        Number(simRef.tick()),
+      pos3:        new Float64Array(simRef.positions_3d()),
+      bonds:       new Uint32Array(simRef.bond_pairs()),
+      tensions:    new Float64Array(simRef.bond_tensions()),
+      concs,
+      sats:        optionalFloatArray(simRef, 'saturation_indices', concs.length),
+      pressures:   optionalFloatArray(simRef, 'pressure_potentials', concs.length),
+      roles:       new Uint8Array(simRef.parcel_roles()),
+      spins:       new Float64Array(simRef.parcel_spins()),
+      chokeStates: new Uint8Array(simRef.parcel_choke_states()),
+      chokePhases: new Uint8Array(simRef.parcel_choke_phases()),
+      coherences:  new Float64Array(simRef.parcel_coherences()),
+      vorticities: new Float64Array(simRef.parcel_vorticities()),
+      N:           n,
+    };
+  }
+
+  function pushHistory(snap) {
+    frameHistory.push(snap);
+    if (frameHistory.length > HISTORY_MAX) frameHistory.shift();
+    historyIdx = -1; // back to live
+  }
+
+  // ── 3D Camera ──
+  // Orbit camera: azimuth (theta), elevation (phi), distance
+  let camTheta = 0.3;    // azimuth angle (radians, around Y axis)
+  let camPhi   = 0.4;    // elevation angle (radians, from XZ plane)
+  let camDist  = 40;     // distance from target
+  let camTargetX = 0, camTargetY = 0, camTargetZ = 0; // look-at point
+  let camFov   = 600;    // perspective field-of-view scale
+  let camInit  = false;
+  let trackHome = false; // toggle: continuously re-center on centroid
+
+  // Project world (x,y,z) → camera-space (cx,cy,cz) using orbit camera
+  function worldToCamera(wx, wy, wz) {
+    // Translate to camera target
+    const x = wx - camTargetX;
+    const y = wy - camTargetY;
+    const z = wz - camTargetZ;
+    // Rotate around Y axis by -theta (azimuth)
+    const cosT = Math.cos(-camTheta), sinT = Math.sin(-camTheta);
+    const x1 = x * cosT - z * sinT;
+    const z1 = x * sinT + z * cosT;
+    const y1 = y;
+    // Rotate around X axis by -phi (elevation)
+    const cosP = Math.cos(-camPhi), sinP = Math.sin(-camPhi);
+    const y2 = y1 * cosP - z1 * sinP;
+    const z2 = y1 * sinP + z1 * cosP;
+    const x2 = x1;
+    // Camera is at (0, 0, -camDist) looking at origin
+    return [x2, y2, z2 + camDist];
+  }
+
+  // Camera-space → screen (perspective projection)
+  function cameraToScreen(cx, cy, cz) {
+    const W = window.innerWidth, H = window.innerHeight;
+    const d = Math.max(cz, 0.1); // prevent divide by zero / behind camera
+    const scale = camFov / d;
+    return [cx * scale + W / 2, -cy * scale + H / 2, d];
+  }
+
+  // World → screen (combined)
+  function toScreen3D(wx, wy, wz) {
+    const [cx, cy, cz] = worldToCamera(wx, wy, wz);
+    return cameraToScreen(cx, cy, cz);
+  }
+
+  function autoFit3D(pos3) {
+    // pos3 is flat [x0,y0,z0,x1,y1,z1,...]
+    let minX = Infinity, maxX = -Infinity;
+    let minY = Infinity, maxY = -Infinity;
+    let minZ = Infinity, maxZ = -Infinity;
+    for (let i = 0; i < pos3.length; i += 3) {
+      const x = pos3[i], y = pos3[i+1], z = pos3[i+2];
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+      if (z < minZ) minZ = z; if (z > maxZ) maxZ = z;
+    }
+    camTargetX = (minX + maxX) / 2;
+    camTargetY = (minY + maxY) / 2;
+    camTargetZ = (minZ + maxZ) / 2;
+    const range = Math.max(maxX - minX, maxY - minY, maxZ - minZ, 1);
+    camDist = range * 1.8;
+    camFov = Math.min(window.innerWidth, window.innerHeight) * 0.7;
+  }
+
+  // ── Selection ──
+  let selected = -1;
+  // screenPos will be computed per frame, cached for hit-testing
+  let cachedScreenPos = []; // [{sx, sy, depth, idx}]
+  // Hoisted per-frame data arrays (so updatePanel can access them)
+  let chokePhases = [];
+  let coherences = [];
+  let vorticities = [];
+  let latestPos3 = null; // cached for focus-on-selected
+  let showFlowWisps = true;
+  let showActiveNetworkOnly = false;
+
+  function hitTest3D(sx, sy, hitR) {
+    let best = -1, bestDist = hitR * hitR;
+    for (const p of cachedScreenPos) {
+      // Skip dead/recycled parcels
+      if (p.dead) continue;
+      const d2 = (p.sx - sx) ** 2 + (p.sy - sy) ** 2;
+      if (d2 < bestDist) { bestDist = d2; best = p.idx; }
+    }
+    return best;
+  }
+
+  function updatePanel() {
+    if (selected < 0 || selected >= sim.parcel_count()) {
+      panel.classList.remove('visible'); selected = -1; return;
+    }
+    panel.classList.add('visible');
+    try {
+      const info = JSON.parse(sim.parcel_info(selected));
+      const roles = sim.parcel_roles();
+      const roleNames = ['field', 'D (down)', 'U (up)'];
+      document.getElementById('p-id').textContent     = info.id;
+      document.getElementById('p-role').textContent   = '— ' + (roleNames[roles[selected]] || 'field');
+      document.getElementById('p-ste').textContent     = info.ste.toFixed(4);
+      document.getElementById('p-conc').textContent    = info.concentration.toFixed(4);
+      document.getElementById('p-speed').textContent   = info.speed.toFixed(4);
+      document.getElementById('p-mass').textContent    = info.effective_mass.toFixed(4);
+      document.getElementById('p-shell').textContent   = info.shell_level.toFixed(4);
+      document.getElementById('p-vort').textContent    = info.vorticity.toFixed(4);
+      // Choke info from the new exports
+      const phaseNames = ['free', 'Formation', 'LiftOff', 'Coherence', 'Drift', 'Dissolution'];
+      const ph = chokePhases[selected];
+      const coh = coherences[selected];
+      document.getElementById('p-choke').textContent   = phaseNames[ph] || 'free';
+      document.getElementById('p-coher').textContent   = ph > 0 ? coh.toFixed(3) : '—';
+    } catch { panel.classList.remove('visible'); selected = -1; }
+  }
+
+  // ── Mouse: left-drag=orbit, shift+drag or right-drag=pan ──
+  let dragging = false, dragBtn = 0, dragStartX = 0, dragStartY = 0;
+  let dragTheta = 0, dragPhi = 0, dragTargetX = 0, dragTargetY = 0, dragTargetZ = 0;
+  let didDrag = false, shiftHeld = false;
+
+  canvas.addEventListener('mousedown', e => {
+    dragging = true; didDrag = false;
+    dragBtn = e.button;
+    shiftHeld = e.shiftKey;
+    dragStartX = e.clientX; dragStartY = e.clientY;
+    dragTheta = camTheta; dragPhi = camPhi;
+    dragTargetX = camTargetX; dragTargetY = camTargetY; dragTargetZ = camTargetZ;
+    canvas.classList.add('dragging');
+    e.preventDefault();
+  });
+  canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
+    if (Math.abs(dx) + Math.abs(dy) > 4) didDrag = true;
+
+    if (shiftHeld || dragBtn === 2) {
+      // Pan: move camera target in screen-local XY plane
+      // Drag-right → target moves right in camera view → world shifts right
+      const panScale = camDist / camFov * 2;
+      const cosT = Math.cos(camTheta), sinT = Math.sin(camTheta);
+      const cosP = Math.cos(camPhi), sinP = Math.sin(camPhi);
+      // Camera right axis in world space
+      const rx = cosT,  rz = sinT;
+      // Camera up axis in world space
+      const ux = -sinT * sinP, uy = cosP, uz = cosT * sinP;
+      camTargetX = dragTargetX + dx * panScale * rx - dy * panScale * ux;
+      camTargetY = dragTargetY                      - dy * panScale * uy;
+      camTargetZ = dragTargetZ - dx * panScale * rz - dy * panScale * uz;
+    } else {
+      // Orbit: drag moves the camera around the target
+      // Drag-right → camera moves right → theta decreases
+      camTheta = dragTheta - dx * 0.005;
+      camPhi = Math.max(-Math.PI * 0.45, Math.min(Math.PI * 0.45,
+        dragPhi + dy * 0.005));
+    }
+  });
+
+  window.addEventListener('mouseup', e => {
+    if (!dragging) return;
+    dragging = false;
+    canvas.classList.remove('dragging');
+    if (!didDrag) {
+      // Scale hit radius with zoom — at high zoom parcels are tiny dots
+      const hitR = Math.max(18, camDist * 0.15);
+      selected = hitTest3D(e.clientX, e.clientY, hitR);
+      updatePanel();
+    }
+  });
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const factor = e.deltaY < 0 ? 0.9 : 1.1;
+    camDist = Math.max(0.5, camDist * factor); // no upper cap — let user zoom freely
+  }, { passive: false });
+
+  // ── Keyboard ──
+  let singleStep = false;
+  let stepBack = false;
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { paused = !paused; historyIdx = -1; e.preventDefault(); }
+    if (e.key === 'ArrowRight' && paused) { singleStep = true; e.preventDefault(); }
+    if (e.key === 'ArrowLeft' && paused) { stepBack = true; e.preventDefault(); }
+    if (e.key === '+' || e.key === '=') speed = Math.min(+(speed + 0.1).toFixed(1), 5.0);
+    if (e.key === '-' || e.key === '_') speed = Math.max(+(speed - 0.1).toFixed(1), 0.1);
+    if (e.key === 'h' || e.key === 'H') {
+      trackHome = !trackHome; // toggle continuous centroid tracking
+      if (trackHome) camInit = true; // don't also slam-zoom on first toggle
+    }
+    if (e.key === 't' || e.key === 'T') {
+      setHudCollapsed(!hudCollapsed);
+    }
+    if (e.key === 'f' || e.key === 'F') {
+      if (selected >= 0 && latestPos3 && selected * 3 + 2 < latestPos3.length) {
+        camTargetX = latestPos3[selected * 3];
+        camTargetY = latestPos3[selected * 3 + 1];
+        camTargetZ = latestPos3[selected * 3 + 2];
+        camDist = 3; // tight zoom on the particle
+      }
+    }
+    if (e.key === 'g' || e.key === 'G') {
+      showFlowWisps = !showFlowWisps;
+    }
+    if (e.key === 'n' || e.key === 'N') {
+      showActiveNetworkOnly = !showActiveNetworkOnly;
+    }
+    if (e.key === 'Escape') { selected = -1; updatePanel(); }
+    if (e.key === 'r' || e.key === 'R') {
+      // Reset: fresh proton, auto-pause, reset camera
+      sim.free();  // release old WASM memory
+      sim = WasmSim.new_proton(N_FIELD);
+      N = sim.parcel_count();
+      paused = true;
+      selected = -1;
+      camInit = false;
+      trackHome = false;
+      stepAccum = 0;
+      frameHistory = [];
+      historyIdx = -1;
+      updatePanel();
+    }
+  });
+
+  // ── Colour helpers (unchanged) ──
+  function tensionColor(tensionSum, maxT) {
+    const t = Math.min(tensionSum / Math.max(maxT * 0.5, 0.001), 1.0);
+    let r, g, b;
+    if (t < 0.35) {
+      const s = t / 0.35;
+      r = Math.floor(40 + 80 * s);
+      g = Math.floor(120 + 20 * s);
+      b = Math.floor(200 - 20 * s);
+    } else if (t < 0.65) {
+      const s = (t - 0.35) / 0.3;
+      r = Math.floor(120 + 60 * s);
+      g = Math.floor(140 * (1 - s * 0.6));
+      b = Math.floor(180 - 60 * s);
+    } else {
+      const s = (t - 0.65) / 0.35;
+      r = Math.floor(180 + 75 * s);
+      g = Math.floor(56 * (1 - s * 0.7));
+      b = Math.floor(120 * (1 - s * 0.8));
+    }
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function bondColor(tension, maxT) {
+    const t = Math.min(tension / Math.max(maxT * 0.3, 0.001), 1.0);
+    let r, g, b;
+    if (t < 0.3) {
+      r = 60; g = 50; b = Math.floor(140 + 60 * (t / 0.3));
+    } else if (t < 0.7) {
+      const s = (t - 0.3) / 0.4;
+      r = Math.floor(60 + 80 * s);
+      g = Math.floor(50 - 20 * s);
+      b = Math.floor(200 - 40 * s);
+    } else {
+      const s = (t - 0.7) / 0.3;
+      r = Math.floor(140 + 115 * s);
+      g = Math.floor(30 - 10 * s);
+      b = Math.floor(160 * (1 - s));
+    }
+    return `rgb(${r},${g},${b})`;
+  }
+
+  function renderHudRows(items, perRow = 8) {
+    const rows = [];
+    for (let i = 0; i < items.length; i += perRow) {
+      rows.push(`<div class="hud-row">${items.slice(i, i + perRow).join('<span class="sep">|</span>')}</div>`);
+    }
+    return rows.join('');
+  }
+
+  function renderHudSections(sections) {
+    return sections.filter(sec => sec.items.length > 0).map(sec => (
+      `<div class="hud-section">` +
+      `<div class="hud-section-title">${sec.title}</div>` +
+      `${renderHudRows(sec.items, sec.perRow || 6)}` +
+      `</div>`
+    )).join('');
+  }
+
+  // ── Render ──
+  function frame() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = window.innerWidth  * dpr;
+    canvas.height = window.innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const W = window.innerWidth, H = window.innerHeight;
+
+    let metrics;
+    let snap = null;
+
+    // ── Step backward through history ──
+    if (stepBack) {
+      stepBack = false;
+      if (frameHistory.length > 0) {
+        if (historyIdx === -1) {
+          historyIdx = frameHistory.length - 1; // start at most recent
+        } else if (historyIdx > 0) {
+          historyIdx--;
+        }
+      }
+    }
+
+    // ── Advance sim (live or single-step) ──
+    if (!paused || singleStep) {
+      if (singleStep && historyIdx >= 0) {
+        // Scrubbing forward through history buffer
+        if (historyIdx < frameHistory.length - 1) {
+          historyIdx++;
+          singleStep = false;
+        } else {
+          historyIdx = -1; // reached end of buffer, advance sim
+        }
+      }
+      if (singleStep || !paused) {
+        historyIdx = -1; // back to live when stepping forward
+        if (singleStep) {
+          metrics = sim.step();
+          singleStep = false;
+        } else {
+          stepAccum += speed;
+          while (stepAccum >= 1.0) { metrics = sim.step(); stepAccum -= 1.0; }
+        }
+        // Record snapshot
+        snap = snapshotFrame(sim);
+        pushHistory(snap);
+      }
+    }
+
+    // ── Use historical frame or live data ──
+    if (historyIdx >= 0 && historyIdx < frameHistory.length) {
+      snap = frameHistory[historyIdx];
+    } else if (!snap) {
+      // Paused, no history navigation — show latest
+      snap = frameHistory.length > 0 ? frameHistory[frameHistory.length - 1] : snapshotFrame(sim);
+    }
+
+    N = snap.N;
+    const pos3     = snap.pos3;
+    latestPos3 = pos3;
+
+    // ── Field bubble diagnostic (console, every 50 ticks) ──
+    const tick = snap.tick;
+    if (tick % 50 === 0 && tick > 0 && historyIdx === -1) {
+      try {
+        // Sample three parcels from different parts of the bubble
+        const n = sim.parcel_count();
+        const i0 = 0, i1 = Math.floor(n/3), i2 = Math.floor(2*n/3);
+        const p0 = JSON.parse(sim.parcel_info(i0));
+        const p1 = JSON.parse(sim.parcel_info(i1));
+        const p2 = JSON.parse(sim.parcel_info(i2));
+        const r0 = Math.sqrt(pos3[i0*3]**2 + pos3[i0*3+1]**2 + pos3[i0*3+2]**2);
+        console.log(
+          `%ct=${tick}%c p0: STE=${p0.ste.toFixed(2)} conc=${p0.concentration.toFixed(4)} spd=${p0.speed.toFixed(3)} r=${r0.toFixed(1)} | ` +
+          `p${i1}: STE=${p1.ste.toFixed(2)} spd=${p1.speed.toFixed(3)} | p${i2}: STE=${p2.ste.toFixed(2)} spd=${p2.speed.toFixed(3)}`,
+          'color:#44ddff;font-weight:bold', 'color:#aaa'
+        );
+      } catch(e) { /* parcel_info parse error — skip this tick */ }
+    }
+    const bonds    = snap.bonds;
+    const tensions = snap.tensions;
+    const concs    = snap.concs;
+    const sats     = snap.sats;
+    const pressures = snap.pressures;
+    const roles    = snap.roles;
+    const spins    = snap.spins;
+    const chokeStates = snap.chokeStates;
+    chokePhases = snap.chokePhases;
+    coherences  = snap.coherences;
+    vorticities = snap.vorticities;
+
+    if (!camInit && pos3.length > 0) { autoFit3D(pos3); camInit = true; }
+
+    // Continuous centroid tracking (Home toggle)
+    if (trackHome && pos3.length > 0) {
+      let sx = 0, sy = 0, sz = 0;
+      const np = pos3.length / 3;
+      for (let i = 0; i < pos3.length; i += 3) {
+        sx += pos3[i]; sy += pos3[i+1]; sz += pos3[i+2];
+      }
+      camTargetX = sx / np;
+      camTargetY = sy / np;
+      camTargetZ = sz / np;
+    }
+
+    // ── Project all parcels to screen and cache ──
+    cachedScreenPos = [];
+    const screenX = new Float64Array(N);
+    const screenY = new Float64Array(N);
+    const screenDepth = new Float64Array(N);
+    for (let i = 0; i < N; i++) {
+      const [sx, sy, depth] = toScreen3D(pos3[i*3], pos3[i*3+1], pos3[i*3+2]);
+      screenX[i] = sx;
+      screenY[i] = sy;
+      screenDepth[i] = depth;
+      const dead = (concs[i] < 0.0001 && roles[i] === 0 && chokeStates[i] === 0)
+                || depth < 0.5; // behind camera
+      cachedScreenPos.push({ sx, sy, depth, idx: i, dead });
+    }
+
+    // Depth scale factor: objects at camDist appear at scale 1.0.
+    // Keep a tiny floor only to avoid total disappearance from precision loss.
+    const depthScale = (i) => Math.max(0.02, camFov / Math.max(screenDepth[i], 0.1) / (camFov / camDist));
+
+    // Background
+    ctx.fillStyle = '#050510';
+    ctx.fillRect(0, 0, W, H);
+
+    // ── Compute per-parcel total tension ──
+    const parcelTension = new Float64Array(N);
+    for (let k = 0; k < bonds.length; k += 2) {
+      const i = bonds[k], j = bonds[k + 1];
+      const t = tensions[k / 2];
+      parcelTension[i] += t;
+      parcelTension[j] += t;
+    }
+    let maxFieldTension = 0.001;
+    for (let i = 0; i < N; i++) {
+      if (roles[i] === 0 && parcelTension[i] > maxFieldTension) {
+        maxFieldTension = parcelTension[i];
+      }
+    }
+
+    let maxPressure = 0.001;
+    for (let i = 0; i < N; i++) {
+      if (pressures[i] > maxPressure) {
+        maxPressure = pressures[i];
+      }
+    }
+
+    const avgVort = vorticities.reduce((a, b) => a + b, 0) / Math.max(vorticities.length, 1);
+    const vortRef = Math.max(avgVort, 1e-6);
+
+    // Activity score for decluttering field parcels.
+    const fieldActivity = new Float64Array(N);
+    const ACTIVE_NODE_MIN = 0.12;
+    for (let i = 0; i < N; i++) {
+      if (roles[i] !== 0 || chokeStates[i] !== 0) {
+        fieldActivity[i] = 1.0;
+        continue;
+      }
+      const tNorm = Math.min(parcelTension[i] / Math.max(maxFieldTension, 1e-10), 1.0);
+      const pNorm = Math.min(pressures[i] / Math.max(maxPressure, 1e-10), 1.0);
+      const vNorm = Math.min(vorticities[i] / Math.max(vortRef, 1e-10), 2.0) * 0.5;
+      fieldActivity[i] = 0.45 * tNorm + 0.35 * pNorm + 0.20 * vNorm;
+    }
+
+    // ── Depth-sort parcels (back to front) ──
+    const sortedIndices = Array.from({ length: N }, (_, i) => i);
+    sortedIndices.sort((a, b) => screenDepth[b] - screenDepth[a]);
+
+    // ── Draw bonds (before parcels, all in one pass) ──
+    let maxBondT = 0.001;
+    for (let k = 0; k < tensions.length; k++) {
+      if (tensions[k] > maxBondT) maxBondT = tensions[k];
+    }
+
+    for (let k = 0; k < bonds.length; k += 2) {
+      const i = bonds[k], j = bonds[k + 1];
+      if (showActiveNetworkOnly) {
+        const iFieldInactive = roles[i] === 0 && chokeStates[i] === 0 && fieldActivity[i] < ACTIVE_NODE_MIN;
+        const jFieldInactive = roles[j] === 0 && chokeStates[j] === 0 && fieldActivity[j] < ACTIVE_NODE_MIN;
+        if (iFieldInactive && jFieldInactive) continue;
+      }
+      const x1 = screenX[i], y1 = screenY[i];
+      const x2 = screenX[j], y2 = screenY[j];
+      const t = tensions[k / 2];
+      const tn = Math.min(t / Math.max(maxBondT * 0.3, 0.001), 1.0);
+
+      // Depth fade: average depth of endpoints
+      const avgDepth = (screenDepth[i] + screenDepth[j]) / 2;
+      const depthFade = Math.max(0.3, Math.min(1.0, 1.5 * camDist / avgDepth));
+
+      const isSel = (selected >= 0) && (i === selected || j === selected);
+      ctx.lineWidth = (isSel ? 1.5 + 2.5 * tn : 0.8 + 2.0 * tn) * depthFade;
+      const alpha = ((0.15 + 0.5 * tn) * depthFade).toFixed(2);
+      ctx.strokeStyle = isSel
+        ? `rgba(255, 220, 100, ${(0.4 + 0.5 * tn).toFixed(2)})`
+        : bondColor(t, maxBondT);
+      ctx.globalAlpha = parseFloat(alpha);
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1.0;
+
+    // ── Wispy STE flow overlay (directed gathering field) ──
+    if (showFlowWisps && latestPos3 && latestPos3.length >= 3) {
+      const localVortRef = Math.max(
+        vorticities.reduce((a, b) => a + b, 0) / Math.max(vorticities.length, 1),
+        1e-6,
+      );
+
+      let cx = 0, cy = 0, cz = 0, wsum = 0;
+      for (let i = 0; i < N; i++) {
+        if (roles[i] !== 0) continue;
+        const w = Math.max(concs[i], 0.0);
+        cx += latestPos3[i * 3] * w;
+        cy += latestPos3[i * 3 + 1] * w;
+        cz += latestPos3[i * 3 + 2] * w;
+        wsum += w;
+      }
+
+      if (wsum > 1e-10) {
+        cx /= wsum;
+        cy /= wsum;
+        cz /= wsum;
+
+        const sampleStride = Math.max(1, Math.floor(N / 140));
+        ctx.lineCap = 'round';
+
+        for (let i = 0; i < N; i += sampleStride) {
+          if (roles[i] !== 0 || chokeStates[i] !== 0) continue;
+          if (showActiveNetworkOnly && fieldActivity[i] < ACTIVE_NODE_MIN) continue;
+          if (screenDepth[i] < 0.5) continue;
+
+          const x = latestPos3[i * 3];
+          const y = latestPos3[i * 3 + 1];
+          const z = latestPos3[i * 3 + 2];
+
+          const satNorm = Math.min(sats[i] / 1.4, 1.0);
+          const pressureNorm = Math.min(pressures[i] / Math.max(maxPressure, 1e-10), 1.0);
+          const flowStrength = Math.min(1.0, 0.55 * satNorm + 0.45 * pressureNorm);
+          if (flowStrength < 0.04) continue;
+
+          let dx = cx - x;
+          let dy = cy - y;
+          let dz = cz - z;
+          const dl = Math.hypot(dx, dy, dz);
+          if (dl < 1e-8) continue;
+          dx /= dl; dy /= dl; dz /= dl;
+
+          let tx = -dy;
+          let ty = dx;
+          let tz = 0.0;
+          const tl = Math.hypot(tx, ty, tz);
+          if (tl > 1e-8) { tx /= tl; ty /= tl; }
+
+          const vortRatio = Math.min(vorticities[i] / Math.max(localVortRef, 1e-10), 2.0);
+          const swirl = Math.min(0.35, 0.18 * vortRatio);
+
+          let dirX = dx * (1.0 - swirl) + tx * swirl;
+          let dirY = dy * (1.0 - swirl) + ty * swirl;
+          let dirZ = dz * (1.0 - swirl) + tz * swirl;
+          const dnl = Math.hypot(dirX, dirY, dirZ);
+          if (dnl < 1e-8) continue;
+          dirX /= dnl; dirY /= dnl; dirZ /= dnl;
+
+          const worldLen = 0.50 + 1.70 * flowStrength;
+          const x2 = x + dirX * worldLen;
+          const y2 = y + dirY * worldLen;
+          const z2 = z + dirZ * worldLen;
+
+          const [sx1, sy1, sd1] = toScreen3D(x, y, z);
+          const [sx2, sy2, sd2] = toScreen3D(x2, y2, z2);
+          const depthFade = Math.max(0.2, Math.min(1.0, 1.6 * camDist / Math.max((sd1 + sd2) * 0.5, 1e-6)));
+          const alpha = (0.07 + 0.18 * flowStrength) * depthFade;
+
+          ctx.strokeStyle = `rgba(190, 235, 255, ${alpha.toFixed(3)})`;
+          ctx.lineWidth = (0.45 + 1.65 * flowStrength) * depthFade;
+          ctx.beginPath();
+          ctx.moveTo(sx1, sy1);
+          ctx.lineTo(sx2, sy2);
+          ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1.0;
+    }
+
+    // ── Draw parcels (depth-sorted, back to front) ──
+    const baseR = 4;
+    for (const i of sortedIndices) {
+      // Skip dead/recycled parcels (escape-culled: STE~0, no bonds) or behind camera
+      if (concs[i] < 0.0001 && roles[i] === 0 && chokeStates[i] === 0) continue;
+      if (screenDepth[i] < 0.5) continue; // behind camera
+      if (showActiveNetworkOnly && roles[i] === 0 && chokeStates[i] === 0 && fieldActivity[i] < ACTIVE_NODE_MIN) continue;
+
+      const sx = screenX[i], sy = screenY[i];
+      const ds = depthScale(i);
+      const role = roles[i];
+      const isSel = (i === selected);
+
+      // Depth-based size scaling only (no alpha fade — everything stays visible)
+      const depthAlpha = 1.0;
+
+      // Selection ring
+      if (isSel) {
+        ctx.beginPath();
+        ctx.arc(sx, sy, baseR * 3.5 * ds, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 220, 100, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      if (role === 1) {
+        // D quark — bright yellow star
+        const dR = baseR * 2.5 * ds;
+        ctx.globalAlpha = depthAlpha;
+        const dGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, dR * 4);
+        dGrad.addColorStop(0, 'rgba(255, 230, 80, 0.30)');
+        dGrad.addColorStop(0.5, 'rgba(255, 180, 40, 0.10)');
+        dGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(sx, sy, dR * 4, 0, Math.PI * 2);
+        ctx.fillStyle = dGrad;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(sx, sy, dR, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffdd44';
+        ctx.fill();
+        ctx.fillStyle = '#000';
+        ctx.font = `bold ${Math.max(8, 11 * ds)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('D', sx, sy);
+        ctx.globalAlpha = 1.0;
+      } else if (role === 2) {
+        // U quark
+        const uR = baseR * 2 * ds;
+        ctx.globalAlpha = depthAlpha;
+        const uGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, uR * 3);
+        uGrad.addColorStop(0, 'rgba(220, 140, 50, 0.20)');
+        uGrad.addColorStop(0.5, 'rgba(180, 100, 30, 0.08)');
+        uGrad.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.beginPath();
+        ctx.arc(sx, sy, uR * 3, 0, Math.PI * 2);
+        ctx.fillStyle = uGrad;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(sx, sy, uR, 0, Math.PI * 2);
+        ctx.fillStyle = '#cc7722';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(sx, sy, uR * 0.45, 0, Math.PI * 2);
+        ctx.fillStyle = '#0a0a14';
+        ctx.fill();
+        ctx.fillStyle = '#ffcc44';
+        ctx.font = `bold ${Math.max(7, 10 * ds)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('U', sx, sy);
+        ctx.globalAlpha = 1.0;
+      } else {
+        // Field parcel
+        const t = parcelTension[i];
+        const col = tensionColor(t, maxFieldTension);
+        const chokeState = chokeStates[i];
+        const spin = spins[i];
+        const r = baseR * ds;
+
+        ctx.globalAlpha = depthAlpha;
+
+        if (chokeState > 0) {
+          // ── Choke lifecycle visual encoding ──
+          const phase = chokePhases[i]; // 1=Formation,2=LiftOff,3=Coherence,4=Drift,5=Dissolution
+          const coherence = coherences[i];
+          const isMatter = chokeState === 1;
+          const baseColor = isMatter ? [68, 255, 136] : [255, 68, 221];
+
+          // Phase-dependent visual treatment
+          let phaseAlpha = 0.20 + 0.80 * coherence;
+          let phaseRingR = r * 3;
+          if (phase === 1) {
+            // Formation — deterministic bright onset (no time flicker)
+            phaseAlpha = 0.75 + 0.25 * coherence;
+            phaseRingR = r * (1.8 + 0.4 * coherence);
+          } else if (phase === 2) {
+            // LiftOff — expanding ring
+            phaseRingR = r * (2.5 + coherence * 1.5);
+          } else if (phase === 5) {
+            // Dissolution — deterministic fade (no random flicker)
+            phaseAlpha = coherence * 0.55;
+          }
+
+          const chokeColor = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${(0.6 * phaseAlpha).toFixed(2)})`;
+
+          // Outer glow — size indicates lifecycle phase
+          const chokeGrad = ctx.createRadialGradient(sx, sy, r * 0.5, sx, sy, phaseRingR);
+          chokeGrad.addColorStop(0, chokeColor);
+          chokeGrad.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.beginPath();
+          ctx.arc(sx, sy, phaseRingR, 0, Math.PI * 2);
+          ctx.fillStyle = chokeGrad;
+          ctx.fill();
+
+          // Spin arc — length proportional to |spin|, width to coherence
+          const spinAngle = Math.abs(spin) * 20;
+          const endA = Math.min(spinAngle, Math.PI * 1.5);
+          ctx.beginPath();
+          ctx.arc(sx, sy, r * 1.8, 0, spin > 0 ? endA : -endA, spin < 0);
+          ctx.strokeStyle = chokeColor;
+          ctx.lineWidth = (1.0 + coherence) * ds;
+          ctx.stroke();
+
+          // Core dot — solid colour, opacity tracks coherence
+          ctx.beginPath();
+          ctx.arc(sx, sy, r, 0, Math.PI * 2);
+          ctx.fillStyle = isMatter
+            ? `rgba(68, 255, 136, ${phaseAlpha.toFixed(2)})`
+            : `rgba(255, 68, 221, ${phaseAlpha.toFixed(2)})`;
+          ctx.fill();
+
+          // Void pupil
+          ctx.beginPath();
+          ctx.arc(sx, sy, r * 0.4, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(10, 10, 20, ${phaseAlpha.toFixed(2)})`;
+          ctx.fill();
+
+          // Phase label (tiny, near the choke)
+          if (ds > 0.4) {
+            const phaseNames = ['', 'F', 'L', 'C', 'D', '×'];
+            ctx.fillStyle = `rgba(255, 255, 255, ${(0.5 * phaseAlpha).toFixed(2)})`;
+            ctx.font = `${Math.max(6, 8 * ds)}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(phaseNames[phase] || '', sx, sy + r * 2.2);
+          }
+        } else {
+          // Tension glow (only for nearby parcels to save perf)
+          if (ds > 0.35) {
+            const glowR = (12 + 18 * Math.min(t / maxFieldTension, 1.0)) * ds;
+            const grad = ctx.createRadialGradient(sx, sy, 0, sx, sy, glowR);
+            grad.addColorStop(0, col.replace('rgb', 'rgba').replace(')', ', 0.14)'));
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.beginPath();
+            ctx.arc(sx, sy, glowR, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+          }
+
+          // Pressure halo: saturation fronts before direct contact.
+          if (ds > 0.30) {
+            const pNorm = Math.min(pressures[i] / Math.max(maxPressure, 1e-10), 1.0);
+            if (pNorm > 0.15) {
+              const haloR = (7 + 16 * pNorm) * ds;
+              const pGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, haloR);
+              pGrad.addColorStop(0, `rgba(255, 120, 80, ${(0.12 + 0.18 * pNorm).toFixed(2)})`);
+              pGrad.addColorStop(1, 'rgba(0,0,0,0)');
+              ctx.beginPath();
+              ctx.arc(sx, sy, haloR, 0, Math.PI * 2);
+              ctx.fillStyle = pGrad;
+              ctx.fill();
+            }
+          }
+
+          ctx.beginPath();
+          ctx.arc(sx, sy, r, 0, Math.PI * 2);
+          ctx.fillStyle = col;
+          ctx.fill();
+
+          // Vorticity glow — relative to local average (no magic threshold)
+          const vort = vorticities[i];
+          const vortThreshold = vortRef;
+          if (vort > vortThreshold * 0.3 && ds > 0.3) {
+            const vortRatio = Math.min(vort / vortThreshold, 2.0);
+            const vortGlowR = (6 + 12 * vortRatio) * ds;
+            const vortAlpha = Math.min(0.35, vortRatio * 0.18);
+            const vortGrad = ctx.createRadialGradient(sx, sy, 0, sx, sy, vortGlowR);
+            vortGrad.addColorStop(0, `rgba(255, 170, 34, ${vortAlpha.toFixed(2)})`);
+            vortGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.beginPath();
+            ctx.arc(sx, sy, vortGlowR, 0, Math.PI * 2);
+            ctx.fillStyle = vortGrad;
+            ctx.fill();
+          }
+
+          ctx.beginPath();
+          ctx.arc(sx, sy, r * 0.35, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(255,255,255,0.15)';
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1.0;
+      }
+    }
+
+    // Panel update
+    if (selected >= 0 && !paused) updatePanel();
+
+    // HUD
+    let m;
+    try { m = metrics ? JSON.parse(metrics) : null; } catch { m = null; }
+    let d;
+    try {
+      d = (typeof sim.diagnostics_json === 'function')
+        ? JSON.parse(sim.diagnostics_json())
+        : null;
+    } catch {
+      d = null;
+    }
+
+    let shadowCount = 0, hotCount = 0, matterCount = 0, antiCount = 0;
+    let formCount = 0, liftCount = 0, driftCount = 0, dissCount = 0;
+    let satHighCount = 0;
+    let pressureFrontCount = 0;
+    let satSum = 0.0;
+    for (let i = 0; i < N; i++) {
+      if (chokeStates[i] === 1) matterCount++;
+      if (chokeStates[i] === 2) antiCount++;
+      const ph = chokePhases[i];
+      if (ph === 1) formCount++;
+      if (ph === 2) liftCount++;
+      if (ph === 3 || ph === 4) driftCount++;
+      if (ph === 5) dissCount++;
+      satSum += sats[i];
+      if (sats[i] > 1.0) satHighCount++;
+      if (pressures[i] > maxPressure * 0.5) pressureFrontCount++;
+      if (roles[i] !== 0) continue;
+      const tn = parcelTension[i] / maxFieldTension;
+      if (tn < 0.35) shadowCount++;
+      else if (tn > 0.65) hotCount++;
+    }
+    const avgSat = satSum / Math.max(N, 1);
+
+    const foamSpawns = m ? (m.foam_spawns || 0) : 0;
+    const foamAnnihilations = m ? (m.foam_annihilations || 0) : 0;
+    const compoundPairs = d ? (d.compound_pair_count || 0) : 0;
+    const compoundDwell = d ? (d.compound_dwell_mean_ticks || 0) : 0;
+    const compoundPotential = d ? (d.compound_potential_sum || 0) : 0;
+    const eventYield = d ? (d.annihilation_energy_this_tick || 0) : 0;
+    const chirality = d ? (d.chirality || 0) : 0;
+    const zeroX = d ? (d.chirality_zero_crossings || 0) : 0;
+    const lockTicks = d ? (d.chirality_lock_ticks || 0) : 0;
+    const relayCollapses = d ? (d.relay_collapse_count || 0) : 0;
+    const transientCollapses = d ? (d.transient_relay_collapses || 0) : 0;
+    const terminalCollapses = d ? (d.terminal_capture_collapses || 0) : 0;
+    const relayOvershootMean = d ? (d.relay_shell_overshoot_mean || 0) : 0;
+    const relayRelaxMean = d ? (d.relay_relaxation_ticks_mean || 0) : 0;
+    const anchoredCount = d ? (d.anchored_depression_count || 0) : 0;
+    const insideOutCount = d ? (d.inside_out_bubble_count || 0) : 0;
+    const anchoredGapMean = d ? (d.anchored_gap_mean || 0) : 0;
+    const voidCoreCount = d ? (d.void_core_count || 0) : 0;
+    const upCandidateCount = d ? (d.up_quark_candidate_count || 0) : 0;
+    const voidShellSupport = d ? (d.void_core_shell_support_mean || 0) : 0;
+    const fractalIndex = d ? (d.fractalization_index || 0) : 0;
+    const crossFlux = d ? (d.cross_scale_flux_mean || 0) : 0;
+    const phaseLock = d ? (d.scale_phase_lock || 0) : 0;
+    const cascadeBreaks = d ? (d.cascade_break_count || 0) : 0;
+
+    // Escape diagnostics — log new events to console
+    const escCount = sim.escaped_count();
+    const escSTE   = sim.escaped_ste();
+    const escChoked = sim.escaped_choked();
+    const escEventN = sim.escape_event_count();
+    if (escEventN > (frame._lastEscEventN || 0)) {
+      try {
+        const events = JSON.parse(sim.escape_log_json());
+        const newEvents = events.slice(frame._lastEscEventN || 0);
+        for (const ev of newEvents) {
+          console.log(
+            `%c⚡ ESCAPE t=${ev.tick} #${ev.idx}%c  ` +
+            `STE=${ev.ste}  conc=${ev.conc}  vort=${ev.vort}  ` +
+            `bonds=${ev.bonds}  avgDist=${ev.avgBondDist}  ` +
+            `closingSpd=${ev.avgClosingSpeed}  ` +
+            `choked=${ev.choked}  phase=${ev.phase}  ` +
+            `spin=${ev.spin}  embedR=${ev.embedR}`,
+            'color:#ff8844;font-weight:bold', 'color:#ccc'
+          );
+        }
+      } catch(e) { /* parse error fallback */ }
+      frame._lastEscEventN = escEventN;
+    }
+
+    const simState = historyIdx >= 0
+      ? `frame ${historyIdx + 1}/${frameHistory.length}`
+      : (paused ? 'paused' : 'live');
+    const focusState = selected >= 0 ? `#${selected}` : 'none';
+    hudStates.innerHTML = [
+      `<b>model</b> fractal`,
+      `<b>speed</b> ${speed.toFixed(1)}x`,
+      `<b>home</b> ${trackHome ? 'on' : 'off'}`,
+      `<b>focus</b> ${focusState}`,
+      `<b>wisps</b> ${showFlowWisps ? 'on' : 'off'}`,
+      `<b>net</b> ${showActiveNetworkOnly ? 'active' : 'all'}`,
+      `<b>state</b> ${simState}`,
+      `<b>zoom</b> ${camDist.toFixed(1)}`,
+    ].join('<span class="sep">|</span>');
+
+    const systemItems = [
+      `<b>tick</b> ${snap.tick}`,
+      `<b>parcels</b> ${N}`,
+      `<b style="color:#44ff88">matter</b> ${matterCount}`,
+      `<b style="color:#ff44dd">anti</b> ${antiCount}`,
+      `<b style="color:#4488cc">shadow</b> ${shadowCount}`,
+      `<b style="color:#cc2222">hot</b> ${hotCount}`,
+    ].filter(Boolean);
+
+    const fieldItems = [
+      `<b style="color:#ffaa88">sat&gt;1</b> ${satHighCount}`,
+      `<b style="color:#ff9966">fronts</b> ${pressureFrontCount}`,
+      `<b style="color:#ffbb99">Savg</b> ${avgSat.toFixed(2)}`,
+      `<b style="color:#ff88cc">chi</b> ${chirality.toFixed(2)}`,
+      `<b style="color:#ffcc88">zc</b> ${zeroX}`,
+      `<b style="color:#ffbb66">lock</b> ${lockTicks}`,
+    ].filter(Boolean);
+
+    const topologyItems = [
+      `<b style="color:#88ffaa">anch</b> ${anchoredCount}`,
+      anchoredCount > 0 ? `<b style="color:#99ffcc">gap</b> ${anchoredGapMean.toFixed(3)}` : '',
+      insideOutCount > 0 ? `<b style="color:#ff9966">inside-out</b> ${insideOutCount}` : '',
+      voidCoreCount > 0 ? `<b style="color:#cc7722">void</b> ${voidCoreCount}` : '',
+      upCandidateCount > 0 ? `<b style="color:#ffcc44">U*</b> ${upCandidateCount}` : '',
+      voidCoreCount > 0 ? `<b style="color:#d2b48c">void-sh</b> ${voidShellSupport.toFixed(3)}` : '',
+      `<b style="color:#ffc977">pairs</b> ${compoundPairs}`,
+      `<b style="color:#ffb366">dwell</b> ${compoundDwell.toFixed(1)}`,
+      `<b style="color:#ff9966">pot</b> ${compoundPotential.toFixed(3)}`,
+    ].filter(Boolean);
+
+    const fractalItems = [
+      `<b style="color:#9fd3ff">F-index</b> ${fractalIndex.toFixed(3)}`,
+      `<b style="color:#8ecbff">x-flux</b> ${crossFlux.toFixed(3)}`,
+      `<b style="color:#7fbfff">lock</b> ${phaseLock.toFixed(3)}`,
+      cascadeBreaks > 0 ? `<b style="color:#ff8877">breaks</b> ${cascadeBreaks}` : '',
+    ].filter(Boolean);
+
+    const eventItems = [
+      `<b style="color:#88ddff">relay</b> ${relayCollapses}`,
+      `<b style="color:#66c2ff">trans</b> ${transientCollapses}`,
+      `<b style="color:#44aaff">term</b> ${terminalCollapses}`,
+      relayCollapses > 0 ? `<b style="color:#99ccff">ovr</b> ${relayOvershootMean.toFixed(3)}` : '',
+      relayCollapses > 0 ? `<b style="color:#aaddff">relax</b> ${relayRelaxMean.toFixed(2)}` : '',
+      (formCount + liftCount + driftCount + dissCount) > 0
+        ? `<b style="color:#ffaa22">F${formCount}/L${liftCount}/D${driftCount}/×${dissCount}</b>`
+        : '',
+      foamSpawns > 0 ? `<b style="color:#44ffaa">+${foamSpawns}</b>` : '',
+      foamAnnihilations > 0 ? `<b style="color:#ffaa44">\u00d7${foamAnnihilations}</b>` : '',
+      eventYield > 0 ? `<b style="color:#ff6655">yield</b> ${eventYield.toFixed(3)}` : '',
+      escCount > 0
+        ? `<b style="color:#ff8844">esc</b> ${escCount} (${escSTE.toFixed(1)} STE${escChoked > 0 ? ', '+escChoked+' choked' : ''})`
+        : '',
+    ].filter(Boolean);
+
+    const viewItems = [
+      historyIdx >= 0
+        ? `<b style="color:#ffcc44">frame ${historyIdx+1}/${frameHistory.length}</b>`
+        : (paused && frameHistory.length > 0 ? `<b style="color:#888">${frameHistory.length} frames</b>` : ''),
+      trackHome ? '<b style="color:#88ddff">HOME</b>' : '',
+      selected >= 0 ? `<b style="color:#fda">sel</b> #${selected}` : '',
+      showFlowWisps ? '<b style="color:#b4e1ff">wisps</b>' : '',
+      showActiveNetworkOnly ? '<b style="color:#ffd37a">active-net</b>' : '',
+      paused ? '<b style="color:#f44">PAUSED</b>' : '',
+    ].filter(Boolean);
+
+    hud.innerHTML = renderHudSections([
+      { title: 'System', items: systemItems },
+      { title: 'Field', items: fieldItems },
+      { title: 'Topology', items: topologyItems },
+      { title: 'Fractal', items: fractalItems },
+      { title: 'Events', items: eventItems },
+      { title: 'View', items: viewItems },
+    ]);
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+}
+
+main();
+</script>
+</body>
+</html>

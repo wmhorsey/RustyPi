@@ -6,10 +6,11 @@ The complete axiomatic foundation. Everything in the ontology is derived from th
 
 ## A0 — Existence
 
-> There exists a finite, bounded quantity of a single substance, **STE**.
+> Existence does not require STE occupancy. **STE** is a finite conserved quantity distributed within existence.
 
-- The universe is a closed bubble; STE is conserved.
-- There is nothing outside the bubble and nothing inside it that is not STE.
+- The total STE budget is finite and conserved.
+- Regions with STE = 0 (true void) are still part of existence.
+- The occupied STE domain can reconfigure, merge, split, and change extent without changing total STE.
 
 ## A1 — Self-Attraction (The Single Rule)
 
@@ -39,6 +40,22 @@ The complete axiomatic foundation. Everything in the ontology is derived from th
 - Like gravity, we observe the *effect* — not the force.
 - STE wants to be in one place, but cannot. Particles, heat, light, and every other observable phenomenon are what happens when attraction fails to fully resolve.
 - Successful attraction is invisible: STE flowing toward STE produces no signal. Only when flow is resisted — when collection fails — do secondary effects emerge that we can detect and measure.
+
+## A5 — Recursive Shelling of Failed Collection
+
+> When attraction cannot fully resolve at one scale, it forms a shell-bounded depression that reproduces the same pattern at neighboring scales.
+
+- A failed collection event does not produce a single boundary; it produces a local topology: inner depression, surrounding shell peak, and lower ambient outside the shell peak.
+- This topology is self-similar: shells can contain sub-shells, and shell fields can nest into larger shell fields under the same A1-A4 rules.
+- Recursion is not an added force. It is the geometric consequence of repeated local failure to complete attraction.
+
+## A6 — Cavitation Threshold for Persistent True Voids
+
+> A persistent true void (STE = 0 cavity with stable shell support) requires extreme convergence events and is not a casual fluctuation outcome.
+
+- Ordinary depressions and transient choke structures are common; persistent zero-STE cavities are rare.
+- Sustained cavitation requires shell support strong enough to keep the cavity open against refill.
+- High-energy compression/collision events are the primary path to creating long-lived internal true voids.
 
 ---
 
@@ -76,6 +93,61 @@ A choke is a **low-energy depression**: it has lost translational coherence with
 - Active STE is **pulled past and around** the choke — the stronger, more attractable fluid wins proximity to the local concentration, and the choke is left behind, bypassed outward.
 - Translational freedom is lost, but vibrational/oscillatory kinetic energy is retained (the micro-vortex still spins).
 - The choke breaks the chain of flow — it is a local discontinuity in the otherwise coherent attraction-driven current.
+
+---
+
+## D2b — Recursive Depression-Shell-Ambient Topology
+
+**From:** D2 (the choke), A5 (recursive shelling), A1-A4
+
+Each persistent choke-like structure organizes into a three-zone profile:
+
+1. **Inner depression** — a local low of effective attractability (the choke core).
+2. **Shell peak** — a surrounding ring/surface of elevated concentration, tension, and resistance.
+3. **Outer ambient** — a region outside the shell peak where concentration drops relative to the shell crest, while still coupling to it through attraction.
+
+This profile is scale-recursive:
+
+- Micro-scale shells can form around sub-structure inside a larger shell.
+- Meso-scale structures can appear as a shell element within a larger ambient field.
+- The same attract/viscosity/failure cycle applies at each level; only scale and timescale change.
+
+Observational consequence:
+
+- A structure can look stable while still exchanging tension and flux across nested shell boundaries.
+- "Inside-out" failure occurs when the outer ambient no longer supports shell integrity (ambient <= core-equivalent support), causing shell collapse and profile inversion.
+
+---
+
+## D2c — Transition Ladder (Depression -> Choke -> Parcel -> Persistent Void)
+
+**From:** D2, D2b, A3, A6
+
+Failed collection has a staged progression. Not every depression reaches the next stage.
+
+1. **Depression**
+     - A local attractability low relative to nearby flow.
+     - Common and often short-lived.
+
+2. **Choke**
+     - A depression becomes shell-wrapped and rotationally coherent.
+     - Gate: local shell support and vorticity persist longer than local refill.
+
+3. **Transient Parcel**
+     - A choked structure temporarily carries discrete identity (coherent shell + transport behavior).
+     - Gate: shell integrity survives drift and interaction cycles.
+     - Most particle-like signatures in open flow are in this regime and are therefore finite-lifetime.
+
+4. **Persistent True Void**
+     - A cavity reaches STE = 0 and remains open under shell support.
+     - Gate: extreme convergence/collision (A6) plus sustained shell-over-core support.
+     - Rare regime; this is the black-hole/up-core class, not ordinary packet/choke behavior.
+
+Operational interpretation:
+
+- The first three levels are expected to be abundant and dynamic.
+- The fourth level is exceptional and requires threshold crossing, not incremental drift.
+- "No real mass" transients map to levels 2-3; structurally persistent void cores map to level 4.
 
 ---
 
@@ -244,7 +316,7 @@ The electron doesn't orbit "around" the proton in a uniform shell. It lives in t
 
 ## D13 — Void Universality
 
-**From:** A5 (cavitation), D12 (proton anatomy), D1 (tension/compression)
+**From:** A6 (cavitation threshold), D12 (proton anatomy), D1 (tension/compression)
 
 Up quarks and black holes are the **same thing**: a cavitated substrate void — a volume of space with absolutely zero STE.
 
@@ -266,7 +338,7 @@ The void is the ultimate secondary effect (A4): attraction so successful at one 
 
 ## D14 — Light: Attraction Wave vs Photon Particle
 
-**From:** A5 (cavitation), D13 (void universality), D11 (electron swarm), D1 (tension/compression), A4 (observability)
+**From:** A6 (cavitation threshold), D13 (void universality), D11 (electron swarm), D1 (tension/compression), A4 (observability)
 
 The difference between a choke (a depression — low STE, but not zero) and a void (absolute zero STE) is what gives rise to **light**.
 
@@ -306,7 +378,7 @@ Operational signatures for simulation:
 
 ## D15 — Black Hole Growth
 
-**From:** D13 (void universality), D14 (light), A5 (cavitation)
+**From:** D13 (void universality), D14 (light), A6 (cavitation threshold)
 
 Black holes do not grow by consuming matter (STE). They grow by consuming **void space within matter**.
 

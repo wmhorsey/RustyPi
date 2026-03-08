@@ -1,0 +1,31 @@
+[package]
+name = "mass-effect-engine"
+description = "STE physics engine — attraction-only substrate simulation"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = ["wasm"]
+wasm = ["wasm-bindgen", "js-sys", "web-sys", "console_error_panic_hook"]
+native = []
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# WASM dependencies (optional)
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", optional = true, features = ["console"] }
+console_error_panic_hook = { version = "0.1", optional = true }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[profile.release]
+opt-level = 3
+lto = true

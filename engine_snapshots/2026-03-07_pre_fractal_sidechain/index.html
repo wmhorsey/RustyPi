@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>STE Universe</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0a12;
+    color: #ccc;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+    width: 100vw;
+    height: 100vh;
+    cursor: grab;
+  }
+  canvas.dragging { cursor: grabbing; }
+  #hud {
+    position: fixed;
+    top: 12px;
+    left: 16px;
+    font-size: 13px;
+    line-height: 1.6;
+    pointer-events: none;
+    text-shadow: 0 0 6px #000;
+  }
+  #hud b { color: #6cf; }
+  #controls {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    font-size: 12px;
+    opacity: 0.6;
+  }
+  /* ── Parcel info panel ── */
+  #panel {
+    position: fixed;
+    top: 12px;
+    right: 16px;
+    width: 250px;
+    background: rgba(12, 12, 24, 0.92);
+    border: 1px solid rgba(100, 180, 255, 0.25);
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    display: none;
+    backdrop-filter: blur(8px);
+  }
+  #panel.visible { display: block; }
+  #panel h3 {
+    color: #6cf;
+    margin: 0 0 8px 0;
+    font-size: 14px;
+  }
+  #panel .row { display: flex; justify-content: space-between; }
+  #panel .row .label { color: #888; }
+  #panel .row .value { color: #eee; font-variant-numeric: tabular-nums; }
+  #panel .edit-row {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(100,180,255,0.15);
+  }
+  #panel input[type="range"] {
+    width: 100%;
+    margin: 4px 0;
+    accent-color: #6cf;
+  }
+  #panel .btn-row { margin-top: 8px; display: flex; gap: 6px; }
+  #panel button {
+    flex: 1;
+    padding: 5px 0;
+    background: rgba(100,180,255,0.15);
+    border: 1px solid rgba(100,180,255,0.3);
+    border-radius: 4px;
+    color: #acd;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  #panel button:hover { background: rgba(100,180,255,0.25); }
+  #panel button.danger { border-color: rgba(255,80,80,0.4); color: #f88; }
+  #panel button.danger:hover { background: rgba(255,80,80,0.2); }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud"></div>
+<div id="controls">
+  SPACE = pause &nbsp; L = emit light &nbsp; +/- = speed &nbsp;
+  Scroll = zoom &nbsp; Drag = pan &nbsp; Click = select &nbsp;
+  H = home &nbsp; N = new parcel at centre
+</div>
+<div id="panel">
+  <h3>Parcel <span id="p-id">—</span></h3>
+  <div class="row"><span class="label">STE amount</span><span class="value" id="p-ste">—</span></div>
+  <div class="row"><span class="label">Concentration</span><span class="value" id="p-conc">—</span></div>
+  <div class="row"><span class="label">Bonds</span><span class="value" id="p-bonds">—</span></div>
+  <div class="row"><span class="label">Tension Σ</span><span class="value" id="p-tension">—</span></div>
+  <div class="row"><span class="label">Eff. mass</span><span class="value" id="p-mass">—</span></div>
+  <div class="row"><span class="label">Avg bond dist</span><span class="value" id="p-dist">—</span></div>
+  <div class="row"><span class="label">Vorticity</span><span class="value" id="p-vort">—</span></div>
+  <div class="edit-row">
+    <div class="row"><span class="label">Set STE</span><span class="value" id="p-ste-val">1.00</span></div>
+    <input type="range" id="p-ste-slider" min="0.1" max="20" step="0.1" value="1.0">
+    <div class="btn-row">
+      <button id="btn-apply">Apply</button>
+      <button id="btn-3x">3× neighbours</button>
+      <button id="btn-emit">Emit light</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import init, { WasmSim } from './pkg/mass_effect_engine.js';
+
+async function main() {
+  await init();
+
+  let N = 40;
+  const sim = new WasmSim(N);
+
+  const canvas  = document.getElementById('c');
+  const ctx     = canvas.getContext('2d');
+  const hud     = document.getElementById('hud');
+  const panel   = document.getElementById('panel');
+
+  let paused = false;
+  let speed = 1.0;        // physics steps per frame (0.1–5.0)
+  let stepAccum = 0;     // sub-frame accumulator for fractional speeds
+
+  // ── Camera state ────────────────────────────────────────────
+  let camX = 0;      // world-space centre X
+  let camY = 0;      // world-space centre Y
+  let camZoom = 1;   // pixels per world unit
+  let camInit = false;
+
+  /** Convert world coords → screen coords. */
+  function toScreen(x, y) {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    return [
+      (x - camX) * camZoom + W / 2,
+      (y - camY) * camZoom + H / 2,
+    ];
+  }
+  /** Convert screen coords → world coords. */
+  function toWorld(sx, sy) {
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+    return [
+      (sx - W / 2) / camZoom + camX,
+      (sy - H / 2) / camZoom + camY,
+    ];
+  }
+
+  /** Auto-fit camera to the bounding box of all parcels. */
+  function autoFit(pos) {
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (let i = 0; i < pos.length; i += 2) {
+      if (pos[i]   < minX) minX = pos[i];
+      if (pos[i]   > maxX) maxX = pos[i];
+      if (pos[i+1] < minY) minY = pos[i+1];
+      if (pos[i+1] > maxY) maxY = pos[i+1];
+    }
+    const rangeX = (maxX - minX) || 1;
+    const rangeY = (maxY - minY) || 1;
+    const pad = 0.5;
+    camX = (minX + maxX) / 2;
+    camY = (minY + maxY) / 2;
+    camZoom = Math.min(window.innerWidth, window.innerHeight)
+            / (Math.max(rangeX, rangeY) + pad * 2);
+  }
+
+  // ── Selection state ─────────────────────────────────────────
+  let selected = -1;     // parcel index or -1
+
+  function updatePanel() {
+    if (selected < 0 || selected >= sim.parcel_count()) {
+      panel.classList.remove('visible');
+      selected = -1;
+      return;
+    }
+    panel.classList.add('visible');
+    try {
+      const info = JSON.parse(sim.parcel_info(selected));
+      document.getElementById('p-id').textContent     = info.id;
+      document.getElementById('p-ste').textContent     = info.ste.toFixed(4);
+      document.getElementById('p-conc').textContent    = info.concentration.toFixed(4);
+      document.getElementById('p-bonds').textContent   = info.bonds;
+      document.getElementById('p-tension').textContent = info.tension_sum.toFixed(4);
+      document.getElementById('p-mass').textContent    = info.effective_mass.toFixed(4);
+      document.getElementById('p-dist').textContent    = info.avg_bond_dist.toFixed(4);
+      document.getElementById('p-vort').textContent    = info.vorticity.toFixed(4);
+      // Set slider to current STE (clamped to range)
+      const slider = document.getElementById('p-ste-slider');
+      slider.value = Math.min(parseFloat(slider.max), Math.max(parseFloat(slider.min), info.ste));
+      document.getElementById('p-ste-val').textContent = info.ste.toFixed(2);
+    } catch (e) {
+      // parcel_info failed — deselect
+      panel.classList.remove('visible');
+      selected = -1;
+    }
+  }
+
+  /** Find the parcel index nearest to screen coords (sx,sy), within hitR pixels. */
+  function hitTest(sx, sy, pos, hitR) {
+    let best = -1, bestDist = hitR * hitR;
+    const nParcels = pos.length / 2;
+    for (let i = 0; i < nParcels; i++) {
+      const [px, py] = toScreen(pos[i * 2], pos[i * 2 + 1]);
+      const d2 = (px - sx) ** 2 + (py - sy) ** 2;
+      if (d2 < bestDist) { bestDist = d2; best = i; }
+    }
+    return best;
+  }
+
+  // ── Mouse / touch input ─────────────────────────────────────
+  let dragging = false;
+  let dragStartX = 0, dragStartY = 0;
+  let dragCamX = 0, dragCamY = 0;
+  let didDrag = false;
+
+  canvas.addEventListener('mousedown', e => {
+    if (e.button === 0) {
+      dragging = true;
+      didDrag = false;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      dragCamX = camX;
+      dragCamY = camY;
+      canvas.classList.add('dragging');
+    }
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    const dx = e.clientX - dragStartX;
+    const dy = e.clientY - dragStartY;
+    if (Math.abs(dx) + Math.abs(dy) > 4) didDrag = true;
+    camX = dragCamX - dx / camZoom;
+    camY = dragCamY - dy / camZoom;
+  });
+  window.addEventListener('mouseup', e => {
+    if (!dragging) return;
+    dragging = false;
+    canvas.classList.remove('dragging');
+
+    // If it was a click (no significant drag), try to select a parcel
+    if (!didDrag) {
+      const pos = sim.positions_2d();
+      const hitR = Math.max(12, 600 / (pos.length / 2));
+      const idx = hitTest(e.clientX, e.clientY, pos, hitR);
+      if (idx >= 0) {
+        selected = idx;
+      } else {
+        selected = -1;
+      }
+      updatePanel();
+    }
+  });
+
+  // Zoom toward cursor
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    const [wx, wy] = toWorld(e.clientX, e.clientY);
+    const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    camZoom *= factor;
+    camZoom = Math.max(5, Math.min(camZoom, 50000));
+    // Keep the world point under the cursor stationary
+    camX = wx - (e.clientX - window.innerWidth / 2) / camZoom;
+    camY = wy - (e.clientY - window.innerHeight / 2) / camZoom;
+  }, { passive: false });
+
+  // ── Keyboard input ──────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.code === 'Space') { paused = !paused; e.preventDefault(); }
+    if (e.key === 'l' || e.key === 'L') {
+      const src = selected >= 0 ? selected : Math.floor(Math.random() * sim.parcel_count());
+      sim.emit_wave(src, 3.0, 1.0);
+    }
+    if (e.key === '+' || e.key === '=') speed = Math.min(+(speed + 0.1).toFixed(1), 5.0);
+    if (e.key === '-' || e.key === '_') speed = Math.max(+(speed - 0.1).toFixed(1), 0.1);
+    if (e.key === 'h' || e.key === 'H') { camInit = false; } // reset camera
+    if (e.key === 'n' || e.key === 'N') {
+      // Spawn a new parcel with default STE near the camera centre
+      const idx = sim.add_parcel(1.0, 3);
+      N = sim.parcel_count();
+      selected = idx;
+      updatePanel();
+    }
+    if (e.key === 'Escape') { selected = -1; updatePanel(); }
+  });
+
+  // ── Panel buttons ───────────────────────────────────────────
+  document.getElementById('p-ste-slider').addEventListener('input', e => {
+    document.getElementById('p-ste-val').textContent = parseFloat(e.target.value).toFixed(2);
+  });
+  document.getElementById('btn-apply').addEventListener('click', () => {
+    if (selected < 0) return;
+    const val = parseFloat(document.getElementById('p-ste-slider').value);
+    sim.set_parcel_ste(selected, val);
+    updatePanel();
+  });
+  document.getElementById('btn-3x').addEventListener('click', () => {
+    if (selected < 0) return;
+    // Get average STE of all parcels, set this one to 3× that
+    const stes = sim.ste_amounts();
+    const avg = stes.reduce((a, b) => a + b, 0) / stes.length;
+    sim.set_parcel_ste(selected, avg * 3);
+    updatePanel();
+  });
+  document.getElementById('btn-emit').addEventListener('click', () => {
+    if (selected < 0) return;
+    sim.emit_wave(selected, 3.0, 1.0);
+  });
+
+  // ── Colour helpers ──────────────────────────────────────────
+  function concColor(c) {
+    const t = Math.min(c / 2.0, 1.0);
+    const r = Math.floor(60 + 195 * t);
+    const g = Math.floor(140 + 100 * (1 - t * 0.5));
+    const b = Math.floor(240 * (1 - t) + 60);
+    return `rgb(${r},${g},${b})`;
+  }
+  function stateColor(s) {
+    if (s === 2) return '#1a0030';
+    if (s === 1) return '#ff4444';
+    return null;
+  }
+
+  // ── Render loop ─────────────────────────────────────────────
+  function frame() {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width  = window.innerWidth  * dpr;
+    canvas.height = window.innerHeight * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const W = window.innerWidth;
+    const H = window.innerHeight;
+
+    // step physics — fractional speed via accumulator
+    let metrics;
+    if (!paused) {
+      stepAccum += speed;
+      while (stepAccum >= 1.0) {
+        metrics = sim.step();
+        stepAccum -= 1.0;
+      }
+    }
+
+    N = sim.parcel_count();
+
+    // get data from WASM
+    const pos     = sim.positions_2d();
+    const bonds   = sim.bond_pairs();
+    const states  = sim.parcel_states();
+    const concs   = sim.concentrations();
+    const wavePos = sim.wave_positions_2d();
+
+    // Initial camera fit (once)
+    if (!camInit && pos.length > 0) {
+      autoFit(pos);
+      camInit = true;
+    }
+
+    // clear
+    ctx.fillStyle = '#0a0a12';
+    ctx.fillRect(0, 0, W, H);
+
+    // draw bonds
+    const tensions = sim.bond_tensions();
+    let maxTension = 0.001;
+    for (let k = 0; k < tensions.length; k++) {
+      if (tensions[k] > maxTension) maxTension = tensions[k];
+    }
+
+    // Track newly-discovered bonds for a brief flash
+    const disc = sim.discoveries();
+    const discoveredSet = new Set();
+    for (let k = 0; k < disc.length; k += 2) {
+      const a = Math.min(disc[k], disc[k+1]);
+      const b = Math.max(disc[k], disc[k+1]);
+      discoveredSet.add(a * 100000 + b);
+    }
+
+    for (let k = 0; k < bonds.length; k += 2) {
+      const i = bonds[k], j = bonds[k + 1];
+      const [x1, y1] = toScreen(pos[i * 2], pos[i * 2 + 1]);
+      const [x2, y2] = toScreen(pos[j * 2], pos[j * 2 + 1]);
+      const t = tensions[k / 2] / maxTension;
+      const alpha = 0.35 + 0.55 * t;
+      const width = 1.0 + 2.0 * t;
+
+      // Highlight bonds connected to selected parcel
+      const isSel = (selected >= 0) && (i === selected || j === selected);
+      const pairKey = Math.min(i,j) * 100000 + Math.max(i,j);
+      const isNew = discoveredSet.has(pairKey);
+      ctx.lineWidth = isNew ? width + 2 : isSel ? width + 1 : width;
+      ctx.strokeStyle = isNew
+        ? `rgba(100, 255, 160, ${Math.min(1, alpha * 1.5).toFixed(2)})`
+        : isSel
+          ? `rgba(255, 220, 100, ${(alpha * 1.2).toFixed(2)})`
+          : `rgba(120, 180, 255, ${alpha.toFixed(2)})`;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+
+    // draw discovery pulses — expanding rings showing field probing
+    const pulses = sim.pulse_radii();
+    for (let i = 0; i < N && i < pulses.length; i++) {
+      const r = pulses[i];
+      if (r < 0.01) continue;  // no pulse active
+      const [sx, sy] = toScreen(pos[i * 2], pos[i * 2 + 1]);
+      const screenR = r * camZoom;
+      if (screenR < 2) continue;  // too small to see
+      // Fade as pulse expands
+      const fade = Math.max(0.02, 0.18 - r * 0.02);
+      ctx.beginPath();
+      ctx.arc(sx, sy, screenR, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(80, 220, 180, ${fade.toFixed(3)})`;
+      ctx.lineWidth = 1.2;
+      ctx.stroke();
+    }
+
+    // draw parcels
+    const baseR = Math.max(4, Math.min(8, 400 / N));
+    for (let i = 0; i < N; i++) {
+      const [sx, sy] = toScreen(pos[i * 2], pos[i * 2 + 1]);
+      const state = states[i];
+      const col = stateColor(state) || concColor(concs[i]);
+      const r = state === 1 ? baseR * 1.4 : baseR;
+      const isSel = (i === selected);
+
+      // selection ring
+      if (isSel) {
+        ctx.beginPath();
+        ctx.arc(sx, sy, r * 2.8, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 220, 100, 0.5)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // ambient glow
+      ctx.beginPath();
+      ctx.arc(sx, sy, r * 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = state === 1
+        ? 'rgba(255, 60, 60, 0.10)'
+        : isSel
+          ? 'rgba(255, 220, 100, 0.10)'
+          : 'rgba(80, 160, 255, 0.06)';
+      ctx.fill();
+
+      // core
+      ctx.beginPath();
+      ctx.arc(sx, sy, r, 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.fill();
+
+      // bright highlight
+      ctx.beginPath();
+      ctx.arc(sx, sy, r * 0.4, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.fill();
+    }
+
+    // draw attraction waves
+    for (let k = 0; k < wavePos.length; k += 2) {
+      const [sx, sy] = toScreen(wavePos[k], wavePos[k + 1]);
+      ctx.beginPath();
+      ctx.arc(sx, sy, baseR * 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 238, 68, 0.12)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(sx, sy, baseR * 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 238, 68, 0.30)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(sx, sy, baseR * 0.9, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffee44';
+      ctx.fill();
+    }
+
+    // update panel if selection exists
+    if (selected >= 0 && !paused) updatePanel();
+
+    // HUD
+    let m;
+    try { m = metrics ? JSON.parse(metrics) : null; } catch { m = null; }
+    hud.innerHTML = [
+      `<b>tick</b> ${sim.tick()}`,
+      `<b>parcels</b> ${N}`,
+      m ? `<b>chokes</b> ${m.choke_count}` : '',
+      `<b>waves</b> ${sim.wave_count()}`,
+      m ? `<b>captures</b> ${m.captures_this_tick}` : '',
+      `<b>speed</b> ${speed.toFixed(1)}x`,
+      `<b>zoom</b> ${camZoom.toFixed(0)}`,
+      paused ? '<b style="color:#f44">PAUSED</b>' : '',
+      selected >= 0 ? `<b style="color:#fda">sel</b> #${selected}` : '',
+    ].filter(Boolean).join(' &nbsp;|&nbsp; ');
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+}
+
+main();
+</script>
+</body>
+</html>
