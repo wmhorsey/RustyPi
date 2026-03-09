@@ -1,0 +1,13 @@
+[package]
+name = "pi-sim"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+pi-core = { path = "../pi-core" }
+serde.workspace = true
+
+[dev-dependencies]
+approx.workspace = true
