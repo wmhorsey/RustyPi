@@ -1,6 +1,12 @@
 use pi_core::{MathError, PhaseTicks, TAU_TICKS_DEFAULT};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ResponseChannel {
+    TrapBiased,
+    RadiativeBiased,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ChokePhase {
     // Unconstrained background state with no trapped shell energy.
     Free,
@@ -59,8 +65,51 @@ pub struct AdditiveChokeKernel {
     break_pressure_threshold: i64,
 }
 
+#[derive(Debug, Clone, Copy)]
+struct ChannelProfile {
+    coherence_gain: i64,
+    coherence_loss: i64,
+    lift_threshold: i64,
+    coherent_threshold: i64,
+    drift_threshold: i64,
+    shell_tension_floor: i64,
+    break_pressure_threshold: i64,
+}
+
+fn channel_profile(channel: ResponseChannel) -> ChannelProfile {
+    match channel {
+        // Trap-biased behavior prefers shell persistence.
+        ResponseChannel::TrapBiased => ChannelProfile {
+            coherence_gain: 4,
+            coherence_loss: 1,
+            lift_threshold: 1,
+            coherent_threshold: 8,
+            drift_threshold: 2,
+            shell_tension_floor: 0,
+            break_pressure_threshold: 2,
+        },
+        // Radiative-biased behavior favors quicker shell break and release.
+        ResponseChannel::RadiativeBiased => ChannelProfile {
+            coherence_gain: 3,
+            coherence_loss: 2,
+            lift_threshold: 1,
+            coherent_threshold: 6,
+            drift_threshold: 3,
+            shell_tension_floor: 0,
+            break_pressure_threshold: 0,
+        },
+    }
+}
+
 impl AdditiveChokeKernel {
     pub fn new(node_count: usize) -> Result<Self, MathError> {
+        Self::new_with_channel(node_count, ResponseChannel::TrapBiased)
+    }
+
+    pub fn new_with_channel(
+        node_count: usize,
+        channel: ResponseChannel,
+    ) -> Result<Self, MathError> {
         if node_count == 0 {
             return Err(MathError::InvalidConfig("node_count must be > 0"));
         }
@@ -70,18 +119,20 @@ impl AdditiveChokeKernel {
             nodes.push(ChokeNode::new()?);
         }
 
+        let profile = channel_profile(channel);
+
         Ok(Self {
             nodes,
             target_phase: PhaseTicks::new(0, TAU_TICKS_DEFAULT)?,
             align_window_ticks: 24,
             phase_step: 1,
-            coherence_gain: 4,
-            coherence_loss: 1,
-            lift_threshold: 1,
-            coherent_threshold: 8,
-            drift_threshold: 2,
-            shell_tension_floor: 0,
-            break_pressure_threshold: 0,
+            coherence_gain: profile.coherence_gain,
+            coherence_loss: profile.coherence_loss,
+            lift_threshold: profile.lift_threshold,
+            coherent_threshold: profile.coherent_threshold,
+            drift_threshold: profile.drift_threshold,
+            shell_tension_floor: profile.shell_tension_floor,
+            break_pressure_threshold: profile.break_pressure_threshold,
         })
     }
 

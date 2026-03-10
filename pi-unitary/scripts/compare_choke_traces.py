@@ -111,6 +111,29 @@ def mean_abs_err(values: list[float]) -> float:
     return sum(values) / len(values)
 
 
+def transition_delta_stats(
+    legacy_t: dict[tuple[str, str], int], rusty_t: dict[tuple[str, str], int]
+) -> tuple[int, float, list[tuple[int, str, str, int, int]]]:
+    keys = set(legacy_t.keys()) | set(rusty_t.keys())
+    if not keys:
+        return 0, 0.0, []
+
+    deltas: list[tuple[int, str, str, int, int]] = []
+    l1 = 0
+    for a, b in sorted(keys):
+        lv = legacy_t.get((a, b), 0)
+        rv = rusty_t.get((a, b), 0)
+        d = abs(lv - rv)
+        l1 += d
+        if d > 0:
+            deltas.append((d, a, b, lv, rv))
+    deltas.sort(reverse=True)
+
+    legacy_total = sum(legacy_t.values())
+    norm = l1 / legacy_total if legacy_total > 0 else 0.0
+    return l1, norm, deltas
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Compare legacy and RustyPi choke traces")
     ap.add_argument("--legacy", required=True, help="Legacy CSV path")
@@ -202,6 +225,9 @@ def main() -> int:
 
     legacy_directionality = directionality_violations(legacy_temporal)
     rusty_directionality = directionality_violations(rusty_temporal)
+    transition_l1, transition_norm, transition_deltas = transition_delta_stats(
+        legacy_temporal, rusty_temporal
+    )
 
     print("  directionality violations (legacy temporal):")
     if not legacy_directionality:
@@ -216,6 +242,16 @@ def main() -> int:
     else:
         for count, a, b, why in rusty_directionality[:10]:
             print(f"    {a} -> {b}: {count} ({why})")
+
+    print("  temporal transition delta:")
+    print(f"    l1 delta: {transition_l1}")
+    print(f"    normalized l1 (vs legacy total): {transition_norm:.6f}")
+    print("    top temporal deltas (legacy vs rustypi):")
+    if not transition_deltas:
+        print("      none")
+    else:
+        for d, a, b, lv, rv in transition_deltas[:10]:
+            print(f"      {a} -> {b}: legacy={lv}, rustypi={rv}, delta={d}")
 
     return 0
 

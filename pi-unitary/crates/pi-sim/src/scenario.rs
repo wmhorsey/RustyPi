@@ -1,12 +1,13 @@
 use pi_core::MathError;
 
-use crate::{AdditiveChokeKernel, ChokeNode};
+use crate::{AdditiveChokeKernel, ChokeNode, ResponseChannel};
 
 #[derive(Debug, Clone)]
 pub struct ChokeScenarioConfig {
     pub ticks: usize,
     pub nodes: usize,
     pub target_tick: u16,
+    pub channel: ResponseChannel,
 }
 
 impl Default for ChokeScenarioConfig {
@@ -15,6 +16,7 @@ impl Default for ChokeScenarioConfig {
             ticks: 256,
             nodes: 4,
             target_tick: 0,
+            channel: ResponseChannel::TrapBiased,
         }
     }
 }
@@ -84,7 +86,7 @@ pub fn run_choke_scenario(cfg: ChokeScenarioConfig) -> Result<Vec<ChokeTraceRow>
         return Err(MathError::InvalidConfig("nodes must be > 0"));
     }
 
-    let mut kernel = AdditiveChokeKernel::new(cfg.nodes)?;
+    let mut kernel = AdditiveChokeKernel::new_with_channel(cfg.nodes, cfg.channel)?;
     kernel.set_target_phase(cfg.target_tick)?;
 
     let mut rows = Vec::with_capacity(cfg.ticks * cfg.nodes);
@@ -125,6 +127,7 @@ mod tests {
             ticks: 32,
             nodes: 3,
             target_tick: 1,
+            channel: ResponseChannel::TrapBiased,
         };
         let a = run_choke_scenario(cfg.clone()).expect("run a");
         let b = run_choke_scenario(cfg).expect("run b");
@@ -137,6 +140,7 @@ mod tests {
             ticks: 10,
             nodes: 2,
             target_tick: 0,
+            channel: ResponseChannel::TrapBiased,
         };
         let rows = run_choke_scenario(cfg).expect("rows");
         assert_eq!(rows.len(), 20);

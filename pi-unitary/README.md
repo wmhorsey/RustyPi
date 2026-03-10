@@ -68,11 +68,24 @@ cd ../pi-unitary
 cargo run -p pi-sim --bin choke_trace -- --ticks 128 --nodes 64 --target 0 --out rustypi_trace.csv
 ```
 
+Use explicit response channel profile:
+
+```bash
+cargo run -p pi-sim --bin choke_trace -- --ticks 128 --nodes 64 --target 0 --channel trap --out rustypi_trace_trap.csv
+cargo run -p pi-sim --bin choke_trace -- --ticks 128 --nodes 64 --target 0 --channel radiative --out rustypi_trace_radiative.csv
+```
+
 Compare both traces:
 
 ```bash
 python scripts/compare_choke_traces.py --legacy ../engine/legacy_trace.csv --rustypi rustypi_trace.csv
 ```
+
+The comparator now reports:
+
+- phase/bucket match and MAE metrics
+- directionality-contract violations (temporal)
+- temporal transition delta score (`l1 delta`, `normalized l1`) and top edge deltas
 
 ## Quick start (Python)
 

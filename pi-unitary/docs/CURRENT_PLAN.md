@@ -114,23 +114,25 @@ Implementation sketch for shell break (next):
 
 Latest measured compare (`32 nodes x 1024 ticks`):
 
-- `phase match`: `0.664`
-- `bucket match (free/active)`: `0.682`
-- `coherence MAE`: `0.269039`
-- `energy MAE`: `1.051450`
+- Trap-biased channel:
+	- `phase match`: `0.699`
+	- `bucket match (free/active)`: `0.702`
+	- `coherence MAE`: `0.279293`
+	- `energy MAE`: `1.034628`
+	- `temporal normalized l1`: `0.546078`
+- Radiative-biased channel:
+	- `phase match`: `0.705`
+	- `bucket match (free/active)`: `0.707`
+	- `coherence MAE`: `0.262936`
+	- `energy MAE`: `1.040241`
+	- `temporal normalized l1`: `0.558333`
 
-RustyPi phase occupancy now includes explicit late states:
-
-- `free: 7570`
-- `formation: 447`
-- `liftoff: 25`
-- `dissolution: 150`
+RustyPi phase occupancy now includes explicit late states (channel dependent).
 
 Current dominant mismatches (legacy -> RustyPi):
 
-- `dissolution -> free: 1477`
-- `formation -> free: 430`
-- `free -> formation: 305`
+- `dissolution -> free` remains the top structural mismatch in both channels.
+- `formation -> free` and `liftoff -> free` remain secondary mismatches.
 
 Immediate tuning direction:
 
