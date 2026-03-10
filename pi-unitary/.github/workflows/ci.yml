@@ -20,6 +20,9 @@ jobs:
       - name: Cache cargo
         uses: Swatinem/rust-cache@v2
 
+      - name: Enforce additive-only kernel operators
+        run: python3 scripts/check_additive_kernel_ops.py
+
       - name: Format check
         run: cargo fmt --all -- --check
 

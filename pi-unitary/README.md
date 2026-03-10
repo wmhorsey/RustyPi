@@ -12,13 +12,66 @@ It is intended to become a standalone repository.
 - `crates/pi-core`: foundational Pi/Tau math types and invariants
 - `crates/pi-sim`: simulation building blocks using `pi-core`
 - `python/pithon`: analysis and experimentation layer for notebooks/scripts
-- `docs/`: architecture and migration notes
+- `docs/`: architecture, migration notes, and execution plan
+
+## Planning docs
+
+- Current execution plan: `docs/CURRENT_PLAN.md`
+- Geometry-locked numeric contract: `docs/GEOMETRY_LOCKED_MATH.md`
 
 ## Quick start (Rust)
 
 ```bash
 cargo check --workspace
 cargo test --workspace
+```
+
+### Additive lock check
+
+```bash
+pwsh ./scripts/check_additive.ps1
+```
+
+Fast mode (skip tests):
+
+```bash
+pwsh ./scripts/check_additive.ps1 -NoTests
+```
+
+### Deterministic choke trace runner
+
+Emit CSV trace to stdout:
+
+```bash
+cargo run -p pi-sim --bin choke_trace -- --ticks 128 --nodes 4 --target 0
+```
+
+Write CSV to file:
+
+```bash
+cargo run -p pi-sim --bin choke_trace -- --ticks 128 --nodes 4 --target 0 --out trace.csv
+```
+
+### Legacy vs RustyPi trace comparison
+
+Generate legacy trace from `massEffect/engine`:
+
+```bash
+cd ../engine
+cargo run --features native --bin choke_trace -- --ticks 128 --nodes 64 --out legacy_trace.csv
+```
+
+Generate RustyPi trace:
+
+```bash
+cd ../pi-unitary
+cargo run -p pi-sim --bin choke_trace -- --ticks 128 --nodes 64 --target 0 --out rustypi_trace.csv
+```
+
+Compare both traces:
+
+```bash
+python scripts/compare_choke_traces.py --legacy ../engine/legacy_trace.csv --rustypi rustypi_trace.csv
 ```
 
 ## Quick start (Python)
@@ -31,9 +84,9 @@ pip install -e .
 python -c "import pithon; print(pithon.__version__)"
 ```
 
-## Initial roadmap
+## Current roadmap
 
-1. Normalize phase/angle handling around Tau (`2*pi`).
-2. Replace ad-hoc constants with named Pi-domain constants.
-3. Port choke/coherence logic to typed phase units.
-4. Add invariant/property tests for periodic behavior.
+1. Lock numeric contract (`geometry-locked`, zero-safe, deterministic precision).
+2. Expand `pi-core` with typed windows and safe arithmetic wrappers.
+3. Port first simulation kernel (`choke/coherence`) to typed phase math.
+4. Encode theory as executable invariants before engine/view integration.
