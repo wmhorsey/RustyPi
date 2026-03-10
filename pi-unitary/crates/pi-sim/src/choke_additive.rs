@@ -21,7 +21,6 @@ pub struct ChokeNode {
     pub phase_tick: PhaseTicks,
     pub coherence: i64,
     pub energy: i64,
-    pub dissolution_ticks: i64,
     pub promoted: bool,
     pub phase: ChokePhase,
 }
@@ -32,7 +31,6 @@ impl ChokeNode {
             phase_tick: PhaseTicks::new(0, TAU_TICKS_DEFAULT)?,
             coherence: 0,
             energy: 0,
-            dissolution_ticks: 0,
             promoted: false,
             phase: ChokePhase::Free,
         })
@@ -57,7 +55,8 @@ pub struct AdditiveChokeKernel {
     lift_threshold: i64,
     coherent_threshold: i64,
     drift_threshold: i64,
-    dissolution_hold_ticks: i64,
+    shell_tension_floor: i64,
+    break_pressure_threshold: i64,
 }
 
 impl AdditiveChokeKernel {
@@ -77,11 +76,12 @@ impl AdditiveChokeKernel {
             align_window_ticks: 24,
             phase_step: 1,
             coherence_gain: 4,
-            coherence_loss: 2,
+            coherence_loss: 1,
             lift_threshold: 1,
-            coherent_threshold: 48,
-            drift_threshold: 10,
-            dissolution_hold_ticks: 6,
+            coherent_threshold: 8,
+            drift_threshold: 2,
+            shell_tension_floor: 0,
+            break_pressure_threshold: 0,
         })
     }
 
@@ -117,33 +117,31 @@ impl AdditiveChokeKernel {
                 }
             }
 
-            // Background energy relaxation when no fresh drive is present.
-            if input == 0 && node.energy > 0 {
+            // Reservoir loss should be strongest in free pool; active shells retain contrast.
+            if input == 0 && node.energy > 0 && node.phase == ChokePhase::Free {
                 node.energy -= 1;
             }
 
-            // Energy leak when coherence is low; additive, one quantum per tick.
+            // Dissolution release: shell failure vents constrained STE back to free pool.
             if node.phase == ChokePhase::Dissolution && node.energy > 0 {
                 node.energy -= 1;
-            }
-
-            if node.phase == ChokePhase::Dissolution && node.dissolution_ticks > 0 {
-                node.dissolution_ticks -= 1;
+                let pressure = break_pressure(node.coherence, node.energy);
+                if pressure > self.break_pressure_threshold && node.energy > 0 {
+                    node.energy -= 1;
+                }
             }
 
             let next_phase = classify_phase(
                 node.phase,
                 node.coherence,
                 node.energy,
-                node.dissolution_ticks,
                 node.promoted,
                 self.lift_threshold,
                 self.coherent_threshold,
                 self.drift_threshold,
+                self.shell_tension_floor,
+                self.break_pressure_threshold,
             );
-            if next_phase == ChokePhase::Dissolution && node.phase != ChokePhase::Dissolution {
-                node.dissolution_ticks = self.dissolution_hold_ticks;
-            }
             if next_phase == ChokePhase::LiftOff
                 || next_phase == ChokePhase::Coherence
                 || next_phase == ChokePhase::Drift
@@ -153,7 +151,6 @@ impl AdditiveChokeKernel {
             }
             if next_phase == ChokePhase::Free {
                 node.promoted = false;
-                node.dissolution_ticks = 0;
             }
             node.phase = next_phase;
         }
@@ -166,22 +163,31 @@ fn classify_phase(
     current: ChokePhase,
     coherence: i64,
     energy: i64,
-    dissolution_ticks: i64,
     promoted: bool,
     lift_threshold: i64,
     coherent_threshold: i64,
     drift_threshold: i64,
+    shell_tension_floor: i64,
+    break_pressure_threshold: i64,
 ) -> ChokePhase {
-    // Hard collapse rule: once both coherence and energy are depleted,
-    // only previously promoted nodes are allowed a bounded dissolution release.
-    if energy <= 0 && coherence <= 0 {
+    // Shell tension is the remaining capacity for an STE shell boundary to hold.
+    // If tension is spent, dissolution can complete and return to free background.
+    let tension = shell_tension(coherence, energy);
+    let pressure = break_pressure(coherence, energy);
+    if tension <= shell_tension_floor {
         if current == ChokePhase::Free {
             return ChokePhase::Free;
         }
         if !promoted {
             return ChokePhase::Free;
         }
-        if current == ChokePhase::Dissolution && dissolution_ticks <= 0 {
+        if current == ChokePhase::LiftOff {
+            return ChokePhase::Coherence;
+        }
+        if current == ChokePhase::Coherence {
+            return ChokePhase::Drift;
+        }
+        if current == ChokePhase::Dissolution {
             return ChokePhase::Free;
         }
         return ChokePhase::Dissolution;
@@ -217,20 +223,40 @@ fn classify_phase(
             }
         }
         ChokePhase::Drift => {
-            if coherence <= 0 {
+            if tension <= shell_tension_floor || pressure > break_pressure_threshold {
                 ChokePhase::Dissolution
             } else {
                 ChokePhase::Drift
             }
         }
         ChokePhase::Dissolution => {
-            if energy <= 0 && dissolution_ticks <= 0 {
+            if tension <= shell_tension_floor {
                 ChokePhase::Free
             } else {
                 ChokePhase::Dissolution
             }
         }
     }
+}
+
+fn shell_tension(coherence: i64, energy: i64) -> i64 {
+    let c = if coherence > 0 { coherence } else { 0 };
+    let e = if energy > 0 { energy } else { 0 };
+    if c < e {
+        c
+    } else {
+        e
+    }
+}
+
+fn break_pressure(coherence: i64, energy: i64) -> i64 {
+    let support = shell_tension(coherence, energy);
+    let refill = if energy > coherence {
+        energy - coherence
+    } else {
+        0
+    };
+    refill - support
 }
 
 #[cfg(test)]
@@ -279,5 +305,20 @@ mod tests {
         for n in k.nodes() {
             assert!(n.energy >= 0);
         }
+    }
+
+    #[test]
+    fn shell_tension_requires_both_channels() {
+        assert_eq!(shell_tension(5, 3), 3);
+        assert_eq!(shell_tension(3, 5), 3);
+        assert_eq!(shell_tension(0, 5), 0);
+        assert_eq!(shell_tension(5, 0), 0);
+    }
+
+    #[test]
+    fn break_pressure_grows_when_refill_dominates() {
+        assert_eq!(break_pressure(3, 3), -3);
+        assert_eq!(break_pressure(1, 5), 3);
+        assert_eq!(break_pressure(0, 5), 5);
     }
 }

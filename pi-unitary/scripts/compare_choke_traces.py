@@ -35,6 +35,53 @@ def phase_bucket(phase: str) -> str:
     return "active"
 
 
+def collect_temporal_transitions(rows: dict[tuple[int, int], Row]) -> dict[tuple[str, str], int]:
+    by_node: dict[int, list[Row]] = {}
+    for row in rows.values():
+        if row.node not in by_node:
+            by_node[row.node] = []
+        by_node[row.node].append(row)
+
+    transitions: dict[tuple[str, str], int] = {}
+    for node_rows in by_node.values():
+        node_rows.sort(key=lambda r: r.tick)
+        prev: Row | None = None
+        for cur in node_rows:
+            if prev is not None and cur.tick == prev.tick + 1:
+                k = (prev.phase, cur.phase)
+                transitions[k] = transitions.get(k, 0) + 1
+            prev = cur
+    return transitions
+
+
+def directionality_violations(transitions: dict[tuple[str, str], int]) -> list[tuple[int, str, str, str]]:
+    # Contract:
+    # 1) No direct free->dissolution path.
+    # 2) Build-up cannot skip choke-shell stages while becoming trapped.
+    rules: list[tuple[str, str, str]] = [
+        ("free", "dissolution", "direct free->dissolution forbidden"),
+        ("free", "drift", "free cannot jump to drift"),
+        ("free", "coherence", "free cannot jump to coherence"),
+        ("free", "liftoff", "free cannot jump to liftoff"),
+        ("formation", "coherence", "formation cannot skip liftoff"),
+        ("formation", "drift", "formation cannot skip lift/coherence"),
+        ("formation", "dissolution", "formation cannot jump to dissolution"),
+        ("liftoff", "drift", "liftoff cannot skip coherence"),
+        ("liftoff", "dissolution", "liftoff cannot jump to dissolution"),
+        ("coherence", "formation", "coherence must decay through drift/dissolution"),
+        ("coherence", "free", "coherence cannot jump directly to free"),
+        ("drift", "free", "drift must pass through dissolution before free"),
+    ]
+
+    out: list[tuple[int, str, str, str]] = []
+    for a, b, why in rules:
+        count = transitions.get((a, b), 0)
+        if count > 0:
+            out.append((count, a, b, why))
+    out.sort(reverse=True)
+    return out
+
+
 def load_rows(path: Path) -> dict[tuple[int, int], Row]:
     out: dict[tuple[int, int], Row] = {}
     with path.open("r", encoding="utf-8", newline="") as f:
@@ -72,6 +119,8 @@ def main() -> int:
 
     legacy = load_rows(Path(args.legacy))
     rusty = load_rows(Path(args.rustypi))
+    legacy_temporal = collect_temporal_transitions(legacy)
+    rusty_temporal = collect_temporal_transitions(rusty)
 
     keys = sorted(set(legacy.keys()) & set(rusty.keys()))
     if not keys:
@@ -150,6 +199,23 @@ def main() -> int:
     print("  top mismatches (legacy -> rustypi):")
     for count, lp, rp in mismatches[:10]:
         print(f"    {lp} -> {rp}: {count}")
+
+    legacy_directionality = directionality_violations(legacy_temporal)
+    rusty_directionality = directionality_violations(rusty_temporal)
+
+    print("  directionality violations (legacy temporal):")
+    if not legacy_directionality:
+        print("    none")
+    else:
+        for count, a, b, why in legacy_directionality[:10]:
+            print(f"    {a} -> {b}: {count} ({why})")
+
+    print("  directionality violations (rustypi temporal):")
+    if not rusty_directionality:
+        print("    none")
+    else:
+        for count, a, b, why in rusty_directionality[:10]:
+            print(f"    {a} -> {b}: {count} ({why})")
 
     return 0
 

@@ -63,9 +63,54 @@ Deliverable:
 
 Lifecycle semantics lock (authoritative):
 
+- `Free` STE is a pool/reservoir state (ocean-like background capacity), not a lifecycle stage in itself.
+- Choke onset is resistance-to-flow emergence inside that pool; shell entrapment follows as resistance stabilizes.
 - `Dissolution` is constrained STE being released back into `free`.
 - Working backward from `Dissolution` is choke assembly: `free -> formation -> lift-off -> coherence -> drift`, where the choke becomes trapped inside an STE shell.
 - Calibration changes must preserve this directionality: no direct `free -> dissolution` path and no `coherence/drift` skip when constructing trapped-shell states.
+
+Shell-boundary rule (authoritative):
+
+- `free` is not a timed next-phase; it means shell non-existence.
+- Dissolution completion is governed by shell tension, not a hold timer.
+- Current additive shell-tension definition in kernel:
+	- `shell_tension = min(max(coherence, 0), max(energy, 0))`
+- Interpretation:
+	- both channels must remain present for a meaningful shell boundary.
+	- if either channel is spent, tension collapses and dissolution can release to `free`.
+
+Quantization/boundary rule (authoritative):
+
+- Free-flow STE pool is pre-quantized continuum; there are no persistent levels before resistance forms.
+- Quantization appears at choke boundaries, where flow resistance creates a constrained shell state.
+- A choke core is a lower-attraction depression relative to surrounding STE, which circulates around and maintains the boundary.
+- Dissolution onset is asymmetric boundary failure: when outside energy contrast becomes lopsided, shell support migrates to one side and a channel opens to the free pool.
+
+Discontinuity interpretation (authoritative):
+
+- Quantization lifecycle is modeled as STE discontinuity formation and decay.
+- A hot-spot discontinuity is a local energy peak that behaves like a virtual particle proxy until it radiates away.
+- A void-like discontinuity is a lower-attraction core protected by surrounding shell flow; shell structure can mimic a protective boundary until contrast collapses.
+- Both are boundary states of the same STE medium and must terminate by release/radiation back into free pool continuity.
+
+Interaction quantization hypothesis (authoritative):
+
+- The key balance is not "attraction wave alone," but how local structure forces quantization during interaction.
+- Particle-class behavior is modeled as response-to-structure channels:
+	- electron-like channel: boundary-trapping dominant response.
+	- photon-like channel: boundary-transit/radiative-release dominant response.
+- Both channels interact with the same local STE discontinuity geometry and differ by how strongly they retain vs shed shell tension.
+- Calibration objective is to recover these contrasting interaction outcomes from one shared shell-tension/break-pressure framework.
+
+Implementation sketch for shell break (next):
+
+- Track boundary asymmetry as an additive contrast between local shell support and local refill pressure.
+- Suggested signal:
+	- `shell_support = min(coherence, energy)`
+	- `refill_pressure = max(0, energy - coherence)`
+	- `break_pressure = refill_pressure - shell_support`
+- Rule:
+	- if `break_pressure` stays positive long enough, move `drift -> dissolution` and accelerate release to `free`.
 
 Latest measured compare (`32 nodes x 1024 ticks`):
 
@@ -89,6 +134,7 @@ Current dominant mismatches (legacy -> RustyPi):
 
 Immediate tuning direction:
 
-1. Increase promoted-node decay residency in `Dissolution` without allowing `Free -> Dissolution` overshoot.
-2. Shift deterministic scenario timing to align active bursts with legacy dissolution windows.
-3. Track transition-matrix deltas as the primary acceptance signal, with MAE as secondary.
+1. Implement additive shell asymmetry / break-pressure signal in `choke_additive.rs` for `drift -> dissolution` gating.
+2. Tune release rate with break-pressure so `dissolution -> free` is governed by contrast loss, not fixed dwell.
+3. Add response-channel parameters (trap-biased vs radiative-biased) on top of the same boundary model, then compare transition fingerprints.
+4. Keep comparator directionality checks as hard gates and use transition-matrix deltas as primary parity metric.

@@ -114,3 +114,19 @@ Before merging any numeric change:
 3. Are constants named and documented?
 4. Are boundary and periodic invariants tested?
 5. Can this path emit `NaN`/`Inf`? If yes, reject.
+
+## 9) Choke Boundary Quantization Rules
+
+These rules define when quantization exists in the STE model.
+
+- Free STE pool is continuum-like background flow and is treated as pre-quantized.
+- Quantized states emerge only at choke boundaries where flow resistance creates constrained shell structure.
+- Choke core is modeled as lower attraction than its local exterior; exterior circulation is what maintains shell boundary state.
+- Dissolution is boundary failure by contrast loss, not a generic timer transition.
+
+Required modeling consequences:
+
+1. `Free` means boundary non-existence, not "next phase by timeout."
+2. `Drift -> Dissolution` must be explainable by shell-support vs refill-pressure imbalance.
+3. `Dissolution -> Free` must be explainable by shell-tension collapse (energy-contrast exhausted).
+4. Directionality checks in trace comparison are mandatory acceptance gates.
