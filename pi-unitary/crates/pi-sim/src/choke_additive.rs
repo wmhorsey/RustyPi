@@ -27,6 +27,8 @@ pub struct ChokeNode {
     pub phase_tick: PhaseTicks,
     pub coherence: i64,
     pub energy: i64,
+    pub shell_ring_ticks: i64,
+    pub spin_bias: i64,
     pub promoted: bool,
     pub phase: ChokePhase,
 }
@@ -37,6 +39,8 @@ impl ChokeNode {
             phase_tick: PhaseTicks::new(0, TAU_TICKS_DEFAULT)?,
             coherence: 0,
             energy: 0,
+            shell_ring_ticks: 0,
+            spin_bias: 0,
             promoted: false,
             phase: ChokePhase::Free,
         })
@@ -63,6 +67,8 @@ pub struct AdditiveChokeKernel {
     drift_threshold: i64,
     shell_tension_floor: i64,
     break_pressure_threshold: i64,
+    liftoff_shell_ticks: i64,
+    liftoff_spin_threshold: i64,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -74,6 +80,8 @@ struct ChannelProfile {
     drift_threshold: i64,
     shell_tension_floor: i64,
     break_pressure_threshold: i64,
+    liftoff_shell_ticks: i64,
+    liftoff_spin_threshold: i64,
 }
 
 fn channel_profile(channel: ResponseChannel) -> ChannelProfile {
@@ -87,6 +95,8 @@ fn channel_profile(channel: ResponseChannel) -> ChannelProfile {
             drift_threshold: 2,
             shell_tension_floor: 0,
             break_pressure_threshold: 2,
+            liftoff_shell_ticks: 3,
+            liftoff_spin_threshold: 2,
         },
         // Radiative-biased behavior favors quicker shell break and release.
         ResponseChannel::RadiativeBiased => ChannelProfile {
@@ -97,6 +107,8 @@ fn channel_profile(channel: ResponseChannel) -> ChannelProfile {
             drift_threshold: 3,
             shell_tension_floor: 0,
             break_pressure_threshold: 0,
+            liftoff_shell_ticks: 2,
+            liftoff_spin_threshold: 1,
         },
     }
 }
@@ -133,6 +145,8 @@ impl AdditiveChokeKernel {
             drift_threshold: profile.drift_threshold,
             shell_tension_floor: profile.shell_tension_floor,
             break_pressure_threshold: profile.break_pressure_threshold,
+            liftoff_shell_ticks: profile.liftoff_shell_ticks,
+            liftoff_spin_threshold: profile.liftoff_spin_threshold,
         })
     }
 
@@ -168,6 +182,20 @@ impl AdditiveChokeKernel {
                 }
             }
 
+            let tension = shell_tension(node.coherence, node.energy);
+            if input > 0 && arc <= self.align_window_ticks && tension > self.shell_tension_floor {
+                node.shell_ring_ticks += 1;
+            } else if node.shell_ring_ticks > 0 {
+                node.shell_ring_ticks -= 1;
+            }
+
+            let asym = flow_asymmetry(node.coherence, node.energy);
+            if input > 0 && asym > 0 {
+                node.spin_bias += 1;
+            } else if node.spin_bias > 0 {
+                node.spin_bias -= 1;
+            }
+
             // Reservoir loss should be strongest in free pool; active shells retain contrast.
             if input == 0 && node.energy > 0 && node.phase == ChokePhase::Free {
                 node.energy -= 1;
@@ -186,12 +214,16 @@ impl AdditiveChokeKernel {
                 node.phase,
                 node.coherence,
                 node.energy,
+                node.shell_ring_ticks,
+                node.spin_bias,
                 node.promoted,
                 self.lift_threshold,
                 self.coherent_threshold,
                 self.drift_threshold,
                 self.shell_tension_floor,
                 self.break_pressure_threshold,
+                self.liftoff_shell_ticks,
+                self.liftoff_spin_threshold,
             );
             if next_phase == ChokePhase::LiftOff
                 || next_phase == ChokePhase::Coherence
@@ -202,6 +234,8 @@ impl AdditiveChokeKernel {
             }
             if next_phase == ChokePhase::Free {
                 node.promoted = false;
+                node.shell_ring_ticks = 0;
+                node.spin_bias = 0;
             }
             node.phase = next_phase;
         }
@@ -214,12 +248,16 @@ fn classify_phase(
     current: ChokePhase,
     coherence: i64,
     energy: i64,
+    shell_ring_ticks: i64,
+    spin_bias: i64,
     promoted: bool,
     lift_threshold: i64,
     coherent_threshold: i64,
     drift_threshold: i64,
     shell_tension_floor: i64,
     break_pressure_threshold: i64,
+    liftoff_shell_ticks: i64,
+    liftoff_spin_threshold: i64,
 ) -> ChokePhase {
     // Shell tension is the remaining capacity for an STE shell boundary to hold.
     // If tension is spent, dissolution can complete and return to free background.
@@ -253,7 +291,10 @@ fn classify_phase(
             }
         }
         ChokePhase::Formation => {
-            if coherence >= lift_threshold {
+            if coherence >= lift_threshold
+                && shell_ring_ticks >= liftoff_shell_ticks
+                && spin_bias >= liftoff_spin_threshold
+            {
                 ChokePhase::LiftOff
             } else {
                 ChokePhase::Formation
@@ -308,6 +349,14 @@ fn break_pressure(coherence: i64, energy: i64) -> i64 {
         0
     };
     refill - support
+}
+
+fn flow_asymmetry(coherence: i64, energy: i64) -> i64 {
+    if energy > coherence {
+        energy - coherence
+    } else {
+        coherence - energy
+    }
 }
 
 #[cfg(test)]
@@ -371,5 +420,18 @@ mod tests {
         assert_eq!(break_pressure(3, 3), -3);
         assert_eq!(break_pressure(1, 5), 3);
         assert_eq!(break_pressure(0, 5), 5);
+    }
+
+    #[test]
+    fn liftoff_requires_shell_and_spin_buildup() {
+        let mut k = AdditiveChokeKernel::new(1).expect("kernel");
+        k.set_target_phase(1).expect("target");
+
+        k.step(&[1]).expect("step 1");
+        k.step(&[1]).expect("step 2");
+        assert_eq!(k.nodes()[0].phase, ChokePhase::Formation);
+
+        k.step(&[1]).expect("step 3");
+        assert_eq!(k.nodes()[0].phase, ChokePhase::LiftOff);
     }
 }

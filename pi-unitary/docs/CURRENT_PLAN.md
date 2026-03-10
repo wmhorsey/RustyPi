@@ -68,6 +68,8 @@ Lifecycle semantics lock (authoritative):
 - `Dissolution` is constrained STE being released back into `free`.
 - Working backward from `Dissolution` is choke assembly: `free -> formation -> lift-off -> coherence -> drift`, where the choke becomes trapped inside an STE shell.
 - Calibration changes must preserve this directionality: no direct `free -> dissolution` path and no `coherence/drift` skip when constructing trapped-shell states.
+- `Dissolution` is a rare barrier-failure regime (catastrophic release), not a common steady-state occupancy target.
+- Normal mass-forming behavior should be dominated by reverse/assembly-side shell dynamics at short scales (chokes/spikes), not frequent dissolution events.
 
 Shell-boundary rule (authoritative):
 
@@ -131,7 +133,7 @@ RustyPi phase occupancy now includes explicit late states (channel dependent).
 
 Current dominant mismatches (legacy -> RustyPi):
 
-- `dissolution -> free` remains the top structural mismatch in both channels.
+- `dissolution -> free` remains the top structural mismatch in both channels, but this is now treated as secondary unless directionality or stability contracts are violated.
 - `formation -> free` and `liftoff -> free` remain secondary mismatches.
 
 Immediate tuning direction:
@@ -140,3 +142,4 @@ Immediate tuning direction:
 2. Tune release rate with break-pressure so `dissolution -> free` is governed by contrast loss, not fixed dwell.
 3. Add response-channel parameters (trap-biased vs radiative-biased) on top of the same boundary model, then compare transition fingerprints.
 4. Keep comparator directionality checks as hard gates and use transition-matrix deltas as primary parity metric.
+5. Reweight acceptance criteria so dissolution frequency is constrained low while assembly-side shell formation remains robust.

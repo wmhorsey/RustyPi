@@ -30,16 +30,17 @@ pub struct ChokeTraceRow {
     pub coherence: i64,
     pub energy: i64,
     pub phase: &'static str,
+    pub pathway: &'static str,
 }
 
 impl ChokeTraceRow {
     pub fn csv_header() -> &'static str {
-        "tick,node,drive,phase_tick,coherence,energy,phase"
+        "tick,node,drive,phase_tick,coherence,energy,phase,pathway"
     }
 
     pub fn to_csv_line(self) -> String {
         format!(
-            "{},{},{},{},{},{},{}",
+            "{},{},{},{},{},{},{},{}",
             self.tick,
             self.node,
             self.drive,
@@ -47,6 +48,7 @@ impl ChokeTraceRow {
             self.coherence,
             self.energy,
             self.phase,
+            self.pathway,
         )
     }
 }
@@ -59,6 +61,21 @@ fn phase_name(node: ChokeNode) -> &'static str {
         crate::ChokePhase::Coherence => "coherence",
         crate::ChokePhase::Drift => "drift",
         crate::ChokePhase::Dissolution => "dissolution",
+    }
+}
+
+fn pathway_name(node: ChokeNode) -> &'static str {
+    match node.phase {
+        crate::ChokePhase::Free => "free_pool",
+        crate::ChokePhase::Formation | crate::ChokePhase::LiftOff => "depression_consumption",
+        crate::ChokePhase::Coherence | crate::ChokePhase::Drift => "choke_shell_structuring",
+        crate::ChokePhase::Dissolution => {
+            if node.energy > node.coherence {
+                "catastrophic_collapse"
+            } else {
+                "radiative_release"
+            }
+        }
     }
 }
 
@@ -110,6 +127,7 @@ pub fn run_choke_scenario(cfg: ChokeScenarioConfig) -> Result<Vec<ChokeTraceRow>
                 coherence: node.coherence,
                 energy: node.energy,
                 phase: phase_name(*node),
+                pathway: pathway_name(*node),
             });
         }
     }

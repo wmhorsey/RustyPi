@@ -81,6 +81,14 @@ Compare both traces:
 python scripts/compare_choke_traces.py --legacy ../engine/legacy_trace.csv --rustypi rustypi_trace.csv
 ```
 
+Render a visual HTML report:
+
+```bash
+python scripts/render_choke_report.py --legacy ../engine/legacy_trace.csv --rustypi rustypi_trace.csv --out reports/choke_report.html
+```
+
+RustyPi traces now include a `pathway` ledger column (`free_pool`, `depression_consumption`, `choke_shell_structuring`, `radiative_release`, `catastrophic_collapse`) and the HTML report renders pathway totals when present.
+
 The comparator now reports:
 
 - phase/bucket match and MAE metrics
