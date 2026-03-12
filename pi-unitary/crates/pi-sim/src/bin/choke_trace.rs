@@ -18,6 +18,13 @@ fn parse_u16_arg(value: Option<&String>, default_value: u16) -> u16 {
     }
 }
 
+fn parse_u8_arg(value: Option<&String>, default_value: u8) -> u8 {
+    match value.and_then(|v| v.parse::<u8>().ok()) {
+        Some(v) => v,
+        _ => default_value,
+    }
+}
+
 fn parse_channel_arg(value: Option<&String>, default_value: ResponseChannel) -> ResponseChannel {
     match value {
         Some(v) => match v.trim().to_ascii_lowercase().as_str() {
@@ -37,6 +44,8 @@ fn main() {
     let mut nodes = 4usize;
     let mut target = 0u16;
     let mut channel = ResponseChannel::TrapBiased;
+    let mut generation_depth = 0u8;
+    let mut calm_factor_pct = 100u8;
     let mut out: Option<PathBuf> = None;
 
     let mut i = 1usize;
@@ -58,6 +67,14 @@ fn main() {
                 channel = parse_channel_arg(args.get(i + 1), channel);
                 i += 1;
             }
+            "--generation-depth" => {
+                generation_depth = parse_u8_arg(args.get(i + 1), generation_depth);
+                i += 1;
+            }
+            "--calm-pct" => {
+                calm_factor_pct = parse_u8_arg(args.get(i + 1), calm_factor_pct);
+                i += 1;
+            }
             "--out" => {
                 if let Some(path) = args.get(i + 1) {
                     out = Some(PathBuf::from(path));
@@ -74,6 +91,8 @@ fn main() {
         nodes,
         target_tick: target,
         channel,
+        generation_depth,
+        calm_factor_pct,
     };
 
     let rows = match run_choke_scenario(cfg) {

@@ -75,6 +75,12 @@ cargo run -p pi-sim --bin choke_trace -- --ticks 128 --nodes 64 --target 0 --cha
 cargo run -p pi-sim --bin choke_trace -- --ticks 128 --nodes 64 --target 0 --channel radiative --out rustypi_trace_radiative.csv
 ```
 
+Model nested/calm environment step-up loading:
+
+```bash
+cargo run -p pi-sim --bin choke_trace -- --ticks 1024 --nodes 32 --target 128 --channel trap --generation-depth 2 --calm-pct 70 --out rustypi_trace_nested.csv
+```
+
 Compare both traces:
 
 ```bash

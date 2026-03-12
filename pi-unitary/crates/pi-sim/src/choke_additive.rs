@@ -434,4 +434,40 @@ mod tests {
         k.step(&[1]).expect("step 3");
         assert_eq!(k.nodes()[0].phase, ChokePhase::LiftOff);
     }
+
+    #[test]
+    fn negative_drive_cannot_inject_energy_or_coherence() {
+        let mut k = AdditiveChokeKernel::new(1).expect("kernel");
+        k.set_target_phase(1).expect("target");
+
+        // Prime with attractive loading first.
+        for _ in 0..4 {
+            k.step(&[1]).expect("prime");
+        }
+        let before = k.nodes()[0];
+
+        // Repulsive-style input must not inject or amplify.
+        for _ in 0..6 {
+            k.step(&[-5]).expect("repulsive");
+        }
+        let after = k.nodes()[0];
+
+        assert!(after.energy <= before.energy);
+        assert!(after.coherence <= before.coherence);
+    }
+
+    #[test]
+    fn negative_drive_from_free_does_not_trigger_activity() {
+        let mut k = AdditiveChokeKernel::new(1).expect("kernel");
+        k.set_target_phase(1).expect("target");
+
+        for _ in 0..12 {
+            k.step(&[-1]).expect("repulsive");
+        }
+
+        let node = k.nodes()[0];
+        assert_eq!(node.phase, ChokePhase::Free);
+        assert_eq!(node.energy, 0);
+        assert_eq!(node.coherence, 0);
+    }
 }

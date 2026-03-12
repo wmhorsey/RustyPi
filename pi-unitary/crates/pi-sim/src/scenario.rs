@@ -8,6 +8,8 @@ pub struct ChokeScenarioConfig {
     pub nodes: usize,
     pub target_tick: u16,
     pub channel: ResponseChannel,
+    pub generation_depth: u8,
+    pub calm_factor_pct: u8,
 }
 
 impl Default for ChokeScenarioConfig {
@@ -17,6 +19,8 @@ impl Default for ChokeScenarioConfig {
             nodes: 4,
             target_tick: 0,
             channel: ResponseChannel::TrapBiased,
+            generation_depth: 0,
+            calm_factor_pct: 100,
         }
     }
 }
@@ -95,6 +99,42 @@ fn drive_for(tick: usize, node: usize) -> i64 {
     0i64
 }
 
+fn baseline_load_stepup(target_tick: u16, generation_depth: u8, calm_factor_pct: u8) -> i64 {
+    if target_tick < 128 {
+        return 0;
+    }
+
+    // Step-up by powers of two above the first viable gate at 128.
+    let mut step = 1i64;
+    let mut v = target_tick / 128;
+    while v >= 2 {
+        step += 1;
+        v /= 2;
+    }
+
+    let raw = step + i64::from(generation_depth);
+    let calm = i64::from(calm_factor_pct.clamp(1, 100));
+    let scaled = (raw * calm) / 100;
+    if scaled > 0 {
+        scaled
+    } else {
+        1
+    }
+}
+
+fn baseline_pulse(tick: usize, node: usize, baseline: i64, calm_factor_pct: u8) -> i64 {
+    if baseline <= 0 {
+        return 0;
+    }
+    // Calmer environments inject baseline load less frequently.
+    let period = 4usize + usize::from(calm_factor_pct.clamp(1, 100) / 10);
+    if (tick + node) % period == 0 {
+        baseline
+    } else {
+        0
+    }
+}
+
 pub fn run_choke_scenario(cfg: ChokeScenarioConfig) -> Result<Vec<ChokeTraceRow>, MathError> {
     if cfg.ticks == 0 {
         return Err(MathError::InvalidConfig("ticks must be > 0"));
@@ -105,6 +145,7 @@ pub fn run_choke_scenario(cfg: ChokeScenarioConfig) -> Result<Vec<ChokeTraceRow>
 
     let mut kernel = AdditiveChokeKernel::new_with_channel(cfg.nodes, cfg.channel)?;
     kernel.set_target_phase(cfg.target_tick)?;
+    let baseline = baseline_load_stepup(cfg.target_tick, cfg.generation_depth, cfg.calm_factor_pct);
 
     let mut rows = Vec::with_capacity(cfg.ticks * cfg.nodes);
 
@@ -112,7 +153,7 @@ pub fn run_choke_scenario(cfg: ChokeScenarioConfig) -> Result<Vec<ChokeTraceRow>
     for tick in 0..cfg.ticks {
         let mut i = 0usize;
         while i < cfg.nodes {
-            drive[i] = drive_for(tick, i);
+            drive[i] = drive_for(tick, i) + baseline_pulse(tick, i, baseline, cfg.calm_factor_pct);
             i += 1;
         }
 
@@ -146,6 +187,8 @@ mod tests {
             nodes: 3,
             target_tick: 1,
             channel: ResponseChannel::TrapBiased,
+            generation_depth: 0,
+            calm_factor_pct: 100,
         };
         let a = run_choke_scenario(cfg.clone()).expect("run a");
         let b = run_choke_scenario(cfg).expect("run b");
@@ -159,8 +202,18 @@ mod tests {
             nodes: 2,
             target_tick: 0,
             channel: ResponseChannel::TrapBiased,
+            generation_depth: 0,
+            calm_factor_pct: 100,
         };
         let rows = run_choke_scenario(cfg).expect("rows");
         assert_eq!(rows.len(), 20);
+    }
+
+    #[test]
+    fn baseline_load_stepup_respects_threshold_and_nesting() {
+        assert_eq!(baseline_load_stepup(64, 2, 100), 0);
+        assert_eq!(baseline_load_stepup(128, 0, 100), 1);
+        assert_eq!(baseline_load_stepup(128, 2, 100), 3);
+        assert_eq!(baseline_load_stepup(256, 2, 50), 2);
     }
 }
