@@ -1,0 +1,64 @@
+{
+  "ok": true,
+  "checks": [
+    {
+      "name": "csv not empty",
+      "ok": true,
+      "detail": "rows=6144"
+    },
+    {
+      "name": "no duplicate (tick,sequence,node)",
+      "ok": true,
+      "detail": "duplicates=0"
+    },
+    {
+      "name": "constant node count per tick",
+      "ok": true,
+      "detail": "min=512, max=512, ticks=12"
+    },
+    {
+      "name": "non-negative energy/coherence",
+      "ok": true,
+      "detail": "neg_energy=0, neg_coherence=0"
+    },
+    {
+      "name": "phase ids match phase labels",
+      "ok": true,
+      "detail": "mismatches=0"
+    },
+    {
+      "name": "pathway labels follow phase/energy rules",
+      "ok": true,
+      "detail": "mismatches=0"
+    },
+    {
+      "name": "pathway ids match pathway labels",
+      "ok": true,
+      "detail": "mismatches=0"
+    }
+  ],
+  "warnings": [],
+  "summary": {
+    "rows": 6144,
+    "tick_count": 12,
+    "first_tick": 0,
+    "last_tick": 88,
+    "nodes_per_tick": 512,
+    "active_first": 127,
+    "active_last": 15,
+    "phase_first": {
+      "free": 385,
+      "formation": 127
+    },
+    "phase_last": {
+      "free": 497,
+      "formation": 12,
+      "dissolution": 3
+    },
+    "phase_total": {
+      "free": 5840,
+      "formation": 269,
+      "dissolution": 35
+    }
+  }
+}

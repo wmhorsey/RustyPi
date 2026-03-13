@@ -159,6 +159,14 @@ cargo run -p pi-sim --bin gpu_audit_decode_choke -- \
 	--out decoded_choke_nodes.csv
 ```
 
+Translate decoded CSV into a plain-language physics health report (PASS/FAIL checks + evolution snapshot):
+
+```bash
+python scripts/analyze_choke_physics.py --csv reports/audit_runs/rtx2070_pingpong-<timestamp>/decoded_choke_nodes.csv
+```
+
+This writes `physics_report.md` and `physics_report.json` beside the decoded CSV.
+
 Run a multi-scale stability sweep and auto-generate summary metrics:
 
 ```bash
