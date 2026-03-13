@@ -20,10 +20,8 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
-# Try to set a non-interactive backend for headless environments
 try:
     import matplotlib
-    matplotlib.use('Agg')  # Use non-interactive backend
     import matplotlib.pyplot as plt
     import matplotlib.animation as animation
     from matplotlib import style
@@ -58,6 +56,7 @@ class ChokeWatcher:
         self.update_interval = update_interval
         self.last_mtime = 0
         self.data_cache = []
+        self.seen_rows = set()
         self.max_tick_seen = 0
 
         # Set up the plot
@@ -97,24 +96,31 @@ class ChokeWatcher:
                 reader = csv.DictReader(f)
                 for row in reader:
                     tick = int(row['tick'])
+                    sequence = int(row['sequence'])
+                    node = int(row['node'])
+                    row_key = (tick, sequence, node)
+                    if row_key in self.seen_rows:
+                        continue
+
+                    record = {
+                        'tick': tick,
+                        'sequence': sequence,
+                        'node': node,
+                        'phase_tick': int(row['phase_tick']),
+                        'coherence': int(row['coherence']),
+                        'energy': int(row['energy']),
+                        'shell_ring_ticks': int(row['shell_ring_ticks']),
+                        'spin_bias': int(row['spin_bias']),
+                        'phase_id': int(row['phase_id']),
+                        'phase': row['phase'].strip().lower(),
+                        'pathway_id': int(row['pathway_id']),
+                        'pathway': row['pathway'].strip().lower(),
+                        'drive': int(row['drive'])
+                    }
+                    data.append(record)
+                    self.seen_rows.add(row_key)
                     if tick > self.max_tick_seen:
-                        data.append({
-                            'tick': tick,
-                            'sequence': int(row['sequence']),
-                            'node': int(row['node']),
-                            'phase_tick': int(row['phase_tick']),
-                            'coherence': int(row['coherence']),
-                            'energy': int(row['energy']),
-                            'shell_ring_ticks': int(row['shell_ring_ticks']),
-                            'spin_bias': int(row['spin_bias']),
-                            'phase_id': int(row['phase_id']),
-                            'phase': row['phase'].strip().lower(),
-                            'pathway_id': int(row['pathway_id']),
-                            'pathway': row['pathway'].strip().lower(),
-                            'drive': int(row['drive'])
-                        })
-                        if tick > self.max_tick_seen:
-                            self.max_tick_seen = tick
+                        self.max_tick_seen = tick
         except (IOError, ValueError, KeyError) as e:
             print(f"Error reading CSV: {e}")
             return []
@@ -152,7 +158,7 @@ class ChokeWatcher:
                 self.lines[phase].set_data(ticks, counts)
 
             self.ax1.set_xlim(0, max(ticks) + 1)
-            max_count = max(max(counts.values()) if counts else [0] for counts in by_tick.values())
+            max_count = max((max(phase_map.values()) if phase_map else 0) for phase_map in by_tick.values())
             self.ax1.set_ylim(0, max_count * 1.1)
 
         # Update pie chart

@@ -22,11 +22,13 @@ PHASES = ["free", "formation", "liftoff", "coherence", "drift", "dissolution"]
 
 
 class ConsoleChokeWatcher:
-    def __init__(self, csv_path: Path, update_interval: float = 2.0):
+    def __init__(self, csv_path: Path, update_interval: float = 2.0, max_ticks: int | None = None):
         self.csv_path = csv_path
         self.update_interval = update_interval
+        self.max_ticks = max_ticks
         self.last_mtime = 0
         self.data_cache = []
+        self.seen_rows = set()
         self.max_tick_seen = 0
         self.last_display_tick = -1
 
@@ -45,24 +47,31 @@ class ConsoleChokeWatcher:
                 reader = csv.DictReader(f)
                 for row in reader:
                     tick = int(row['tick'])
+                    sequence = int(row['sequence'])
+                    node = int(row['node'])
+                    row_key = (tick, sequence, node)
+                    if row_key in self.seen_rows:
+                        continue
+
+                    record = {
+                        'tick': tick,
+                        'sequence': sequence,
+                        'node': node,
+                        'phase_tick': int(row['phase_tick']),
+                        'coherence': int(row['coherence']),
+                        'energy': int(row['energy']),
+                        'shell_ring_ticks': int(row['shell_ring_ticks']),
+                        'spin_bias': int(row['spin_bias']),
+                        'phase_id': int(row['phase_id']),
+                        'phase': row['phase'].strip().lower(),
+                        'pathway_id': int(row['pathway_id']),
+                        'pathway': row['pathway'].strip().lower(),
+                        'drive': int(row['drive'])
+                    }
+                    data.append(record)
+                    self.seen_rows.add(row_key)
                     if tick > self.max_tick_seen:
-                        data.append({
-                            'tick': tick,
-                            'sequence': int(row['sequence']),
-                            'node': int(row['node']),
-                            'phase_tick': int(row['phase_tick']),
-                            'coherence': int(row['coherence']),
-                            'energy': int(row['energy']),
-                            'shell_ring_ticks': int(row['shell_ring_ticks']),
-                            'spin_bias': int(row['spin_bias']),
-                            'phase_id': int(row['phase_id']),
-                            'phase': row['phase'].strip().lower(),
-                            'pathway_id': int(row['pathway_id']),
-                            'pathway': row['pathway'].strip().lower(),
-                            'drive': int(row['drive'])
-                        })
-                        if tick > self.max_tick_seen:
-                            self.max_tick_seen = tick
+                        self.max_tick_seen = tick
         except (IOError, ValueError, KeyError) as e:
             print(f"Error reading CSV: {e}")
             return []
@@ -105,12 +114,12 @@ class ConsoleChokeWatcher:
             count = phase_counts.get(phase, 0)
             pct = phase_pcts[phase]
             bar = "█" * int(pct / 2)  # Simple bar chart
-            print("12")
+            print(f"{phase:12} {count:6} ({pct:5.1f}%) {bar}")
 
         # Summary stats
         active_nodes = total_nodes - phase_counts.get('free', 0)
         active_pct = (active_nodes / total_nodes) * 100 if total_nodes > 0 else 0
-        print(".1f"
+        print(f"active       {active_nodes:6} ({active_pct:5.1f}%)")
         self.last_display_tick = latest_tick
 
     def run(self):
@@ -125,6 +134,9 @@ class ConsoleChokeWatcher:
                 if new_data:
                     self.data_cache.extend(new_data)
                     self.display_update()
+                    if self.max_ticks is not None and self.max_tick_seen >= self.max_ticks:
+                        print(f"\nReached max tick threshold ({self.max_ticks}).")
+                        break
 
                 time.sleep(self.update_interval)
 
@@ -150,6 +162,12 @@ def main():
         default=2.0,
         help='Update interval in seconds (default: 2.0)'
     )
+    parser.add_argument(
+        '--max-ticks',
+        type=int,
+        default=None,
+        help='Optional maximum tick to display before exiting'
+    )
 
     args = parser.parse_args()
 
@@ -158,7 +176,7 @@ def main():
         print("Make sure the GPU simulation is running and has generated decoded output.")
         return 1
 
-    watcher = ConsoleChokeWatcher(args.csv, args.interval)
+    watcher = ConsoleChokeWatcher(args.csv, args.interval, args.max_ticks)
     watcher.run()
     return 0
 
