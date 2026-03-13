@@ -1,0 +1,18 @@
+{
+  "nodes": 512,
+  "rows": 16384,
+  "run_dir": "C:\\Users\\wmhor\\dev\\massEffect\\pi-unitary\\reports\\audit_gpu_scale_probe_smoke2\\scale_512-1773430316242",
+  "csv": "C:\\Users\\wmhor\\dev\\massEffect\\pi-unitary\\reports\\audit_gpu_scale_probe_smoke2\\scale_512-1773430316242\\decoded_choke_nodes.csv",
+  "neg_energy": 0,
+  "neg_coherence": 0,
+  "mean_energy": 0.102478,
+  "mean_coherence": 0.058472,
+  "max_energy": 4,
+  "max_coherence": 8,
+  "p_free": 0.976562,
+  "p_formation": 0.020386,
+  "p_liftoff": 0.0,
+  "p_coherence": 0.0,
+  "p_drift": 0.0,
+  "p_dissolution": 0.003052
+}

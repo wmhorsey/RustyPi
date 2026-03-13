@@ -19,6 +19,20 @@ It is intended to become a standalone repository.
 - Current execution plan: `docs/CURRENT_PLAN.md`
 - Geometry-locked numeric contract: `docs/GEOMETRY_LOCKED_MATH.md`
 
+## RustyPi / PrimalPi Ontology Contract
+
+This workspace treats boundary conditions as first-class ontology primitives.
+
+- "Shell" means a boundary where attraction frustrates and stress must circulate.
+- Mass-like behavior is tracked as three boundary regimes:
+	- transient spike (radiative ring-down)
+	- depressed-core shell (metastable)
+	- void-core shell (persistent, STE-zero core with shell-borne stress)
+- Heat/light-like channels are swells in the same STE medium.
+- Higher frequency swells couple harder to shell boundaries and are reabsorbed faster.
+
+Authoritative implementation wording lives in `docs/CURRENT_PLAN.md`.
+
 ## Quick start (Rust)
 
 ```bash
@@ -94,6 +108,86 @@ python scripts/render_choke_report.py --legacy ../engine/legacy_trace.csv --rust
 ```
 
 RustyPi traces now include a `pathway` ledger column (`free_pool`, `depression_consumption`, `choke_shell_structuring`, `radiative_release`, `catastrophic_collapse`) and the HTML report renders pathway totals when present.
+
+### Full-state audit trail capture (segment + manifest)
+
+Record high-throughput full-state payloads into an audit run directory:
+
+```bash
+cargo run -p pi-sim --bin gpu_audit_capture -- \
+	--ticks 10000 \
+	--snapshot-every 1 \
+	--state-bytes 67108864 \
+	--segment-mb 512 \
+	--out-dir reports/audit_runs \
+	--run-label rtx2070_fullstate
+```
+
+Output layout per run:
+
+- `segment_*.rpa`: binary segments with all payload bytes and per-record headers
+- `manifest.jsonl`: append-only audit ledger with tick, sequence, offsets, and BLAKE3 hashes
+- `run.json`: run summary (duration, byte count, snapshot count)
+
+Integration note:
+
+- Replace synthetic payload fill in `gpu_audit_capture` with actual GPU ping-pong readback bytes.
+- Keep the same writer path to preserve deterministic audit and integrity guarantees.
+
+### Native GPU ping-pong full-state capture (wgpu)
+
+Capture actual GPU-resident ping-pong compute states through readback into the same audit format:
+
+```bash
+cargo run -p pi-sim --bin gpu_pingpong_audit -- \
+	--ticks 4096 \
+	--snapshot-every 1 \
+	--nodes 2097152 \
+	--target-phase 0 \
+	--segment-mb 512 \
+	--out-dir reports/audit_runs \
+	--run-label rtx2070_pingpong
+```
+
+This binary performs native compute updates on GPU buffers and records structured choke node snapshots (32 bytes/node) to `segment_*.rpa` with per-snapshot BLAKE3 hashes in `manifest.jsonl`.
+
+Decode a run into row-wise CSV for downstream analysis:
+
+```bash
+cargo run -p pi-sim --bin gpu_audit_decode_choke -- \
+	--run-dir reports/audit_runs/rtx2070_pingpong-<timestamp> \
+	--out decoded_choke_nodes.csv
+```
+
+Run a multi-scale stability sweep and auto-generate summary metrics:
+
+```bash
+pwsh ./scripts/gpu_scale_probe.ps1 -Ticks 1024 -SnapshotEvery 16 -TargetPhase 128 -NodeScalesCsv "512,2048,8192"
+```
+
+This writes `scale_summary.json` under the selected output directory and prints per-scale invariants (`neg_energy`, `neg_coherence`) and phase-share distributions.
+
+### Real-time GPU simulation watcher
+
+Watch a running GPU simulation evolve in real-time with live phase distribution plots:
+
+```bash
+pip install matplotlib
+python scripts/watch_gpu_choke.py --csv reports/audit_gpu_scale_probe_smoke3/scale_512-1773430469217/decoded_choke_nodes.csv
+```
+
+This opens an animated matplotlib window showing:
+- Time series of phase counts over simulation ticks
+- Current phase distribution pie chart
+- Automatic updates as new decoded data becomes available
+
+For console-only environments, use the text-based watcher:
+
+```bash
+python scripts/watch_gpu_choke_console.py --csv reports/audit_gpu_scale_probe_smoke3/scale_512-1773430469217/decoded_choke_nodes.csv
+```
+
+This prints live updates to the terminal with phase distributions and progress bars.
 
 The comparator now reports:
 

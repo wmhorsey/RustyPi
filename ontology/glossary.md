@@ -66,6 +66,14 @@ The radial shell around a concentration where inflow, shear, and background STE 
 
 The STE concentration of a structure and the inertia it produces, **measured from inside that structure**. Mass is an interior property: it quantifies how much the internal self-attraction of a particle resists changes to its motion.
 
+Canonical decomposition in this project is boundary-state based (not force-type based):
+
+- **transient spike state** — high-center compression with finite ring-down lifetime
+- **depressed-core shell state** — metastable shell/inner-conflict regime
+- **persistent void-core shell state** — STE-zero core with shell-borne stress
+
+These names are authoritative across STE ontology docs and RustyPi/PrimalPi docs.
+
 ### Inertia
 
 The resistance of a concentrated STE structure to acceleration. Inertia is a direct consequence of internal self-attraction — redirecting the whole structure requires overcoming every internal attraction bond simultaneously.
@@ -159,6 +167,8 @@ Equivalent phrasing used in this project:
 - The driving wave is the attraction modulation; the collapse product is the local photon-particle vortex event.
 
 Light is **not a vortex**. It is the pull itself fluctuating. The vortex only appears when the attraction wave interacts with a structure (see Photon Particle below).
+
+Frequency coupling rule (authoritative): higher-frequency swells couple more strongly to local shell boundaries and therefore reabsorb/re-equalize faster than lower-frequency swells.
 
 Every micro-vortex structure in the substrate — bound electron clouds, free electrons, pre-particle clusters, lone chokes — relays light the same way: the modulated attraction squeezes it tighter (elevates it above its natural shell level), it relaxes back home, and the energy difference is shed outward as a fresh attraction modulation.
 

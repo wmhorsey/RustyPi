@@ -1,0 +1,38 @@
+[
+  {
+    "nodes": 512,
+    "rows": 16384,
+    "run_dir": "C:\\Users\\wmhor\\dev\\massEffect\\pi-unitary\\reports\\audit_gpu_scale_probe_smoke3\\scale_512-1773430469217",
+    "csv": "C:\\Users\\wmhor\\dev\\massEffect\\pi-unitary\\reports\\audit_gpu_scale_probe_smoke3\\scale_512-1773430469217\\decoded_choke_nodes.csv",
+    "neg_energy": 0,
+    "neg_coherence": 0,
+    "mean_energy": 0.102478,
+    "mean_coherence": 0.058472,
+    "max_energy": 4,
+    "max_coherence": 8,
+    "p_free": 0.976562,
+    "p_formation": 0.020386,
+    "p_liftoff": 0.0,
+    "p_coherence": 0.0,
+    "p_drift": 0.0,
+    "p_dissolution": 0.003052
+  },
+  {
+    "nodes": 2048,
+    "rows": 65536,
+    "run_dir": "C:\\Users\\wmhor\\dev\\massEffect\\pi-unitary\\reports\\audit_gpu_scale_probe_smoke3\\scale_2048-1773430471006",
+    "csv": "C:\\Users\\wmhor\\dev\\massEffect\\pi-unitary\\reports\\audit_gpu_scale_probe_smoke3\\scale_2048-1773430471006\\decoded_choke_nodes.csv",
+    "neg_energy": 0,
+    "neg_coherence": 0,
+    "mean_energy": 0.092133,
+    "mean_coherence": 0.031494,
+    "max_energy": 4,
+    "max_coherence": 8,
+    "p_free": 0.98822,
+    "p_formation": 0.011017,
+    "p_liftoff": 0.0,
+    "p_coherence": 0.0,
+    "p_drift": 0.0,
+    "p_dissolution": 0.000763
+  }
+]

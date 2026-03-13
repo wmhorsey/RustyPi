@@ -1,0 +1,5 @@
+{"kind":"run-start","started_unix_ms":1773429992859,"schema":"choke-node-v1-gpu","lane":"full-state-gpu"}
+{"kind":"snapshot","segment":0,"segment_file":"segment_00000.rpa","offset":8,"tick":0,"sequence":0,"payload_bytes":16384,"blake3":"80287f288273bae9e1711cc2db13fe5589002bc52f022abc12f297f154eaa8da","schema":"choke-node-v1-gpu","lane":"full-state-gpu"}
+{"kind":"snapshot","segment":0,"segment_file":"segment_00000.rpa","offset":16468,"tick":3,"sequence":1,"payload_bytes":16384,"blake3":"2095c34edc6d6fcbd3feb963679e63b5011d8c226a80571af39537c0ad176075","schema":"choke-node-v1-gpu","lane":"full-state-gpu"}
+{"kind":"snapshot","segment":0,"segment_file":"segment_00000.rpa","offset":32928,"tick":6,"sequence":2,"payload_bytes":16384,"blake3":"6760f03c419fc3a8b19d3d1ccd59c0102fc37be9900b1effafaaaefe2aeea279","schema":"choke-node-v1-gpu","lane":"full-state-gpu"}
+{"kind":"snapshot","segment":0,"segment_file":"segment_00000.rpa","offset":49388,"tick":9,"sequence":3,"payload_bytes":16384,"blake3":"f528815cfa43649cdb234309179866087f589c222a51ae63298f1b25761951ad","schema":"choke-node-v1-gpu","lane":"full-state-gpu"}

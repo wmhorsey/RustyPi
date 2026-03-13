@@ -167,6 +167,18 @@ $$\frac{p_f}{\rho g h} \gg 1 \quad \text{(fountain effect pushes He 56 m against
 
 ---
 
+## Canonical Mapping (Boundary-State Terminology)
+
+For consistency with `overview.md`, `model.md`, `glossary.md`, and RustyPi/PrimalPi docs, numeric calibration should be interpreted through the same mass boundary-state triad:
+
+- transient spike state (ring-down dominated)
+- depressed-core shell state (metastable)
+- persistent void-core shell state (shell-borne stress around STE-zero core)
+
+Wave-channel interpretation is likewise canonical: higher-frequency swells couple harder to shell boundaries and are reabsorbed faster.
+
+---
+
 ## Falsifiability
 
 The key test of the STE model is **cross-scale consistency**: the dimensionless ratios extracted from QGP should predict the behavior of superfluid He4, and vice versa, because both are windows into the same substrate.

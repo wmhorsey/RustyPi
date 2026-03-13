@@ -1,6 +1,7 @@
 use pi_core::MathError;
 
 use crate::{AdditiveChokeKernel, ChokeNode, ResponseChannel};
+use crate::choke_schema;
 
 #[derive(Debug, Clone)]
 pub struct ChokeScenarioConfig {
@@ -69,18 +70,9 @@ fn phase_name(node: ChokeNode) -> &'static str {
 }
 
 fn pathway_name(node: ChokeNode) -> &'static str {
-    match node.phase {
-        crate::ChokePhase::Free => "free_pool",
-        crate::ChokePhase::Formation | crate::ChokePhase::LiftOff => "depression_consumption",
-        crate::ChokePhase::Coherence | crate::ChokePhase::Drift => "choke_shell_structuring",
-        crate::ChokePhase::Dissolution => {
-            if node.energy > node.coherence {
-                "catastrophic_collapse"
-            } else {
-                "radiative_release"
-            }
-        }
-    }
+    let phase_id = choke_schema::phase_id_from_phase(node.phase);
+    let pathway_id = choke_schema::pathway_id_for(phase_id, node.energy, node.coherence);
+    choke_schema::pathway_name(pathway_id)
 }
 
 /// Deterministic additive drive schedule for choke lifecycle testing.

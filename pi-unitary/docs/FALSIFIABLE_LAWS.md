@@ -46,6 +46,28 @@ Operational test:
   - `dissolution_ratio <= 0.10`
   - `catastrophic_pathway_ratio <= 0.02`
 
+## Law 4: Boundary-State Occupancy Ordering
+
+Statement:
+Under stable nested/calm runs, occupancy should prefer shell-supported regimes over catastrophic release, and persistent void-core signatures should remain rarer than metastable depressed-core shell signatures.
+
+Operational test:
+- Scenario: same as Law 1
+- Pass criteria:
+  - `depressed_shell_occupancy_ratio > persistent_void_occupancy_ratio`
+  - `catastrophic_pathway_ratio < depressed_shell_occupancy_ratio`
+
+## Law 5: Frequency-Coupled Reabsorption
+
+Statement:
+Higher-frequency swells should show shorter relay lifetime / faster re-equalization than lower-frequency swells under the same boundary conditions.
+
+Operational test:
+- Scenario: matched geometry; run low/high frequency channel sweeps
+- Pass criteria:
+  - `median_relax_ticks_high_freq < median_relax_ticks_low_freq`
+  - `high_freq_terminal_capture_ratio >= low_freq_terminal_capture_ratio`
+
 ## Benchmark Discipline
 
 1. Keep scenario set fixed for comparability.

@@ -168,6 +168,26 @@ Mass makes the fluid behave classically:
 
 Without mass, the substrate is a perfect fluid with no classical behavior at all. With mass, classical mechanics emerges as an effective theory layered on top.
 
+### Boundary-State Decomposition of Mass
+
+Operationally, mass behavior is tracked as occupancy across three boundary-condition regimes:
+
+1. **Spike regime (transient)**
+  - Local high-center compression behaves particle-like while boundary support is present.
+  - The center sheds by outward ripple/radiative ring-down when support weakens.
+2. **Depressed-core shell regime (metastable)**
+  - A low-attraction core plus shell/inner conflict yields bounded stability.
+  - Stability duration depends on shell support versus refill pressure and contrast loss.
+3. **Void-core shell regime (persistent)**
+  - True core cavitation (STE=0): no internal force transport across the core volume.
+  - Boundary shell carries the stress load, producing the most persistent mass-like state.
+
+This decomposition is ontology-consistent: one force, three boundary outcomes.
+
+### Wave Interaction Rule (Heat/Light-Like Swells)
+
+Heat-like and light-like behavior are swells in the same STE medium. Coupling strength to local boundary structure increases with frequency, so higher-frequency swells are generally absorbed and re-equalized faster than lower-frequency swells.
+
 ---
 
 ## The Complete Picture

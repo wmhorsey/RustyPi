@@ -151,6 +151,34 @@ Operational interpretation:
 
 ---
 
+## D2d — Mass as Boundary-State Occupancy (Canonical Triad)
+
+**From:** D2, D2b, D2c, A4, A6
+
+Mass-like behavior is tracked as occupancy across three canonical boundary regimes:
+
+1. **Transient spike state**
+     - local high-center compression that acts particle-like while support lasts
+     - decays by radiative ring-down when support weakens
+2. **Depressed-core shell state**
+     - metastable shell-conflict regime around a lower-attraction core
+     - lifetime gated by shell support vs refill/contrast loss
+3. **Persistent void-core shell state**
+     - true STE=0 core with shell-borne stress transport
+     - highest persistence class (black-hole/up-core family)
+
+These are ontology labels for one force under different boundary constraints, not separate forces.
+
+---
+
+## D2e — Frequency-Coupled Wave Absorption
+
+**From:** A1, A4, D2b
+
+Heat/light-like channels are swells in the same STE medium. Interaction strength with shell boundaries increases with frequency, so higher-frequency swells are absorbed/re-equalized faster (shorter effective relay lifetime) than lower-frequency swells.
+
+---
+
 ## D3 — Mass as Interior Measure
 
 **From:** A1, A2, A3

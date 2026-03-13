@@ -95,6 +95,17 @@ Discontinuity interpretation (authoritative):
 - A void-like discontinuity is a lower-attraction core protected by surrounding shell flow; shell structure can mimic a protective boundary until contrast collapses.
 - Both are boundary states of the same STE medium and must terminate by release/radiation back into free pool continuity.
 
+RustyPi/PrimalPi boundary-state contract (authoritative):
+
+- Boundary conditions are primary: "shell" means a frustration boundary where attraction cannot fully resolve and stress is redirected along shell flow.
+- Mass signatures are modeled as three boundary regimes:
+	- transient spike regime (radiative ring-down dominant)
+	- depressed-core shell regime (metastable shell/inner conflict)
+	- persistent void-core shell regime (true STE-zero core; shell-borne stress)
+- The void-core regime is the persistence anchor: core volume does not carry internal force transport; shell carries the load.
+- Wave channels (heat/light-like swells) are medium swells, not separate substances.
+- Frequency coupling rule: higher-frequency swells couple more strongly to local shell boundaries and are absorbed/re-equalized faster.
+
 Interaction quantization hypothesis (authoritative):
 
 - The key balance is not "attraction wave alone," but how local structure forces quantization during interaction.

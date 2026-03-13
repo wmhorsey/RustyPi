@@ -22,6 +22,26 @@ Everything we can detect — particles, heat, light, mass, structure — is a **
 - **Failure to collect** → chokes, heat radiation
 - **Failure to hold** → light, photon emission
 
+### Boundary Conditions Are Primary
+
+In this ontology, "shells" are boundary-condition sites: regions where attraction cannot fully resolve and tension is forced to circulate around a constraint. Particle-like behavior is therefore boundary-driven, not substance-type-driven.
+
+Mass is treated as the combined occupancy of three boundary states:
+
+1. **Transient spike state**
+	- A high-center compression point that can behave particle-like while local field support exists.
+	- It ring-down radiates through outward attraction ripples, which tear down the center peak unless replenished.
+2. **Depressed-core shell state**
+	- A lower-attraction core with shell/inner conflict that provides partial stability.
+	- It remains metastable while shell support exceeds refill/contrast loss.
+3. **Persistent void-core shell state**
+	- A true STE-zero cavity where the core cannot carry force internally.
+	- Stress is borne around the shell boundary; persistence is highest in this regime.
+
+These three states are not separate forces. They are three boundary outcomes of the same self-attraction rule at different support conditions.
+
+Wave modes (heat/light-like swells) are medium swells in STE itself. Absorption rises with interaction frequency: higher-frequency swells couple more strongly to local boundary structures and are therefore reabsorbed into the field over shorter spans.
+
 The universe we measure is made entirely of frustrated attraction.
 
 ---

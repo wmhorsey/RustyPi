@@ -1,5 +1,14 @@
 # Migration Plan (from massEffect)
 
+## Phase 0: Terminology lock
+
+- Normalize ontology wording across docs before deeper kernel moves.
+- Adopt canonical boundary-state names:
+	- transient spike state
+	- depressed-core shell state
+	- persistent void-core shell state
+- Carry the wave-frequency coupling rule into planning and test docs.
+
 ## Phase 1: Foundation
 
 - Introduce `pi-core` typed phase math.
@@ -19,3 +28,4 @@
 
 - Initialize new git remote for `pi-unitary`.
 - Preserve history via subtree split or fresh history based on preference.
+- Preserve ontology contract text in top-level docs during split.

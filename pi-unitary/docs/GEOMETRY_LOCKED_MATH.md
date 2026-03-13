@@ -123,6 +123,11 @@ These rules define when quantization exists in the STE model.
 - Quantized states emerge only at choke boundaries where flow resistance creates constrained shell structure.
 - Choke core is modeled as lower attraction than its local exterior; exterior circulation is what maintains shell boundary state.
 - Dissolution is boundary failure by contrast loss, not a generic timer transition.
+- Canonical boundary-state labels are required in docs/tests:
+  - transient spike state
+  - depressed-core shell state
+  - persistent void-core shell state
+- Wave coupling rule: higher-frequency swells couple harder to shell boundaries and must show faster re-equalization under matched conditions.
 
 Required modeling consequences:
 

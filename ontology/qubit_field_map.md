@@ -56,6 +56,14 @@ All major platforms do the same meta-operation:
 This aligns with the ontology phrase:
 - Light is collapse of the driving wave structure.
 
+Canonical boundary-state reminder:
+- transient spike state
+- depressed-core shell state
+- persistent void-core shell state
+
+Frequency coupling reminder:
+- higher-frequency driving swells couple more strongly to shell boundaries and are reabsorbed faster.
+
 ## Immediate STE Benchmark Implications
 1. Add a relay-collapse counter to light propagation diagnostics.
 2. Track shell overshoot and relaxation time per relay event.
