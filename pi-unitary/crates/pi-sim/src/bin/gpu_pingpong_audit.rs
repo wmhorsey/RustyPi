@@ -12,7 +12,7 @@ struct Params {
   tick: u32,
     node_count: u32,
     target_phase: u32,
-  lane_tag: u32,
+    boundary_tension: u32,
 }
 
 struct NodeState {
@@ -147,7 +147,9 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
         next.energy = next.energy + drive;
     }
 
-    next.phase_tick = (prev.phase_tick + 1u) & 4095u;
+    let boundary_hold = max(1u, params.boundary_tension);
+    let phase_step = select(0u, 1u, ((params.tick + i) % boundary_hold) == 0u);
+    next.phase_tick = (prev.phase_tick + phase_step) & 4095u;
     let arc = shortest_arc_4096(next.phase_tick, params.target_phase);
 
     if (arc <= 24 && drive > 0) {
@@ -244,6 +246,7 @@ async fn run() -> Result<(), String> {
     let mut nodes: usize = 0;
     let mut segment_mb: u32 = 512;
     let mut target_phase: u32 = 0;
+    let mut boundary_tension: u32 = 1;
     let mut out_dir = PathBuf::from("audit_runs");
     let mut run_label = String::from("gpu-pingpong");
     let mut lane = String::from("full-state-gpu");
@@ -274,6 +277,10 @@ async fn run() -> Result<(), String> {
             }
             "--target-phase" => {
                 target_phase = parse_u32_arg(args.get(i + 1), target_phase) % TAU_TICKS_DEFAULT_U32;
+                i += 1;
+            }
+            "--boundary-tension" => {
+                boundary_tension = parse_u32_arg(args.get(i + 1), boundary_tension);
                 i += 1;
             }
             "--out-dir" => {
@@ -493,14 +500,14 @@ async fn run() -> Result<(), String> {
     let mut snapshots = 0u64;
     let mut payload_total = 0u128;
     let mut active_is_ping = true;
-    let lane_tag = 0x5250_4746u32; // "RPGF"
+    let boundary_tension = boundary_tension.max(1);
 
     for tick in 0..ticks {
         let params_words = [
             (tick as u32).wrapping_add(1),
             node_count as u32,
             target_phase,
-            lane_tag,
+            boundary_tension,
         ];
         let params_bytes = u32_words_to_le_bytes(&params_words);
         queue.write_buffer(&params, 0, &params_bytes);
