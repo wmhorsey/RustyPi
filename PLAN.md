@@ -153,6 +153,80 @@ For each physics change:
 3. `game-dev`: scaffold game architecture around a stable simulation adapter interface.
 4. `game-dev`: implement first publishable core loop using current stable metrics.
 
+## Execution Guardrails (Attention + Runway)
+
+Goal: keep momentum without letting one project consume all available bandwidth.
+
+Reality constraints (fixed):
+1. Monday-Friday school drop-off window: 7:05a-7:30a.
+2. Monday and Wednesday OT/Speech block: 9:45a-10:45a, home near 11:00a.
+3. Reliable working window target: Monday-Thursday 7:35a-5:30p.
+4. Friday is a short day with pickup transition starting at 3:00p.
+
+Weekly allocation (during school-hour windows):
+1. MassEffect physics core: 45%
+2. Other software package A: 25%
+3. Other software package B: 20%
+4. Admin/recovery/planning: 10%
+
+Daily operating rule:
+1. One primary physics question only.
+2. One mechanism change only.
+3. One pass/fail decision logged only.
+4. Stop physics work after the planned block ends, even if unfinished.
+
+Daily schedule template (Mon/Wed):
+1. 7:35a-9:30a: Deep Work A (physics or package A)
+2. 9:30a-11:00a: OT/Speech transport/appointment buffer
+3. 11:15a-12:45p: Deep Work B (physics experiment + capture)
+4. 12:45p-1:30p: Lunch
+5. 1:30p-2:30p: Deep Work C (package focus)
+6. 2:45p-3:30p: Admin/logging/planning wrap
+7. 3:45p-4:45p: Deep Work D (package follow-through or replay)
+8. 4:45p-5:30p: Light closeout (inbox, notes, next-day setup)
+
+Daily schedule template (Tue/Thu):
+1. 7:35a-9:30a: Deep Work A (physics or package A)
+2. 9:45a-11:15a: Deep Work B (physics experiment + capture)
+3. 11:30a-12:30p: Evidence logging + cleanup
+4. 12:45p-1:30p: Lunch
+5. 1:30p-2:45p: Deep Work C (package focus)
+6. 3:00p-3:45p: Admin/recovery/planning wrap
+7. 4:00p-5:00p: Deep Work D (package follow-through)
+8. 5:00p-5:30p: Light closeout (notes, triage, next-day setup)
+
+Daily schedule template (Friday short day; no launch, 3:30p release):
+1. 7:35a-9:30a: Deep Work A (physics or package A)
+2. 9:45a-11:15a: Deep Work B (physics experiment + capture)
+3. 11:30a-12:30p: Evidence logging + cleanup
+4. 12:45p-1:30p: Lunch
+5. 1:30p-2:45p: Deep Work C (package focus)
+6. 3:00p-3:30p: School pickup transition buffer
+7. End focused work by 3:00p.
+
+Weekly cadence:
+1. Monday: plan week + easiest win first.
+2. Tuesday: primary physics push.
+3. Wednesday: lighter physics + documentation.
+4. Thursday: second physics push or replay failed test.
+5. Friday: portfolio maintenance + checkpoint notes (short day).
+
+Runway guardrails:
+1. Define a fixed review checkpoint every 14 days.
+2. At each checkpoint, record:
+  - number of binary questions answered,
+  - number of reproducible passes,
+  - number of regressions,
+  - whether portfolio allocation was respected.
+3. If two checkpoints in a row miss allocation targets, reduce physics scope before adding features.
+4. If a day is disrupted, do not extend hours. Move unfinished items to the next planned block.
+
+Evidence-first companion docs:
+1. `pi-unitary/docs/PROJECT_KERNEL.md`
+2. `pi-unitary/docs/HYPOTHESIS_LEDGER.md`
+3. `pi-unitary/docs/EVIDENCE_LOG.md`
+4. `pi-unitary/docs/SESSION_RESTART.md`
+
 ## Scope Recovery Checklist
 If context is compressed, resume in this order:
 1. Re-read this file.

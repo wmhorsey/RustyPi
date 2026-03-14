@@ -93,7 +93,7 @@ def load_rows(csv_path: Path) -> list[dict]:
     return rows
 
 
-def analyze(rows: list[dict]) -> dict:
+def analyze(rows: list[dict], boundary_rate_num: int | None, boundary_rate_den: int | None) -> dict:
     checks: list[CheckResult] = []
     warnings: list[str] = []
 
@@ -258,6 +258,39 @@ def analyze(rows: list[dict]) -> dict:
         else None
     )
 
+    residual_abs_total: int | None = None
+    residual_max_abs: int | None = None
+    residual_samples: int | None = None
+    if boundary_rate_num is not None and boundary_rate_den is not None:
+        num = max(1, int(boundary_rate_num))
+        den = max(1, int(boundary_rate_den))
+        abs_sum = 0
+        max_abs = 0
+        samples = 0
+        for node, seq in by_node_tick.items():
+            seq.sort(key=lambda x: x[0])
+            for idx in range(1, len(seq)):
+                t0, pt0 = seq[idx - 1]
+                t1, pt1 = seq[idx]
+                actual = pt1 - pt0
+                if actual < 0:
+                    actual += TAU_TICKS_DEFAULT
+                # Snapshots are recorded after completing simulation step t,
+                # and the kernel step uses x0 = (t + 1) + node with a lookahead
+                # to x0 + 1. This telescopes to +2 alignment at snapshot time.
+                x0 = t0 + node + 2
+                x1 = t1 + node + 2
+                expected = (x1 * num) // den - (x0 * num) // den
+                err = actual - expected
+                aerr = abs(err)
+                abs_sum += aerr
+                if aerr > max_abs:
+                    max_abs = aerr
+                samples += 1
+        residual_abs_total = abs_sum
+        residual_max_abs = max_abs
+        residual_samples = samples
+
     total_rows = len(rows)
     floor_share = {
         "energy_zero_share": floor_hits_energy / total_rows,
@@ -273,6 +306,11 @@ def analyze(rows: list[dict]) -> dict:
         "avg_phase_tick_delta_per_snapshot": avg_phase_tick_delta_per_snapshot,
         "effective_field_rate_per_tick": effective_field_rate_per_tick,
         "inferred_boundary_tension": inferred_boundary_tension,
+        "configured_boundary_rate_num": boundary_rate_num,
+        "configured_boundary_rate_den": boundary_rate_den,
+        "rational_residual_abs_total": residual_abs_total,
+        "rational_residual_max_abs": residual_max_abs,
+        "rational_residual_samples": residual_samples,
         "lower_boundaries": {
             "energy": "hard_floor_0",
             "coherence": "hard_floor_0",
@@ -369,6 +407,16 @@ def write_markdown(out_md: Path, result: dict, csv_path: Path) -> None:
             lines.append("- inferred_boundary_tension: n/a")
         else:
             lines.append(f"- inferred_boundary_tension: {round(float(inf_tension), 4)}")
+        cfg_num = bp.get("configured_boundary_rate_num")
+        cfg_den = bp.get("configured_boundary_rate_den")
+        if cfg_num is not None and cfg_den is not None:
+            lines.append(f"- configured_boundary_rate: {cfg_num}/{cfg_den}")
+            lines.append(
+                f"- rational_residual_abs_total: {bp.get('rational_residual_abs_total', 'n/a')}"
+            )
+            lines.append(
+                f"- rational_residual_max_abs: {bp.get('rational_residual_max_abs', 'n/a')}"
+            )
         fs = bp.get("floor_shares", {})
         lines.append(
             "- floor_shares: "
@@ -397,6 +445,18 @@ def main() -> int:
         default=None,
         help="Output path prefix (without extension). Defaults to <csv_dir>/physics_report",
     )
+    ap.add_argument(
+        "--boundary-rate-num",
+        type=int,
+        default=None,
+        help="Optional configured rational boundary numerator for residual checks",
+    )
+    ap.add_argument(
+        "--boundary-rate-den",
+        type=int,
+        default=None,
+        help="Optional configured rational boundary denominator for residual checks",
+    )
     args = ap.parse_args()
 
     csv_path = Path(args.csv)
@@ -409,7 +469,12 @@ def main() -> int:
         out_prefix = csv_path.parent / "physics_report"
 
     rows = load_rows(csv_path)
-    result = analyze(rows)
+    rate_num = args.boundary_rate_num
+    rate_den = args.boundary_rate_den
+    if (rate_num is None) ^ (rate_den is None):
+        raise ValueError("Provide both --boundary-rate-num and --boundary-rate-den, or neither")
+
+    result = analyze(rows, rate_num, rate_den)
 
     out_json = out_prefix.with_suffix(".json")
     out_md = out_prefix.with_suffix(".md")

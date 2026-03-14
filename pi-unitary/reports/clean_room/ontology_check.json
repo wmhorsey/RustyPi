@@ -1,0 +1,50 @@
+{
+  "model_contract": {
+    "single_substance": "STE",
+    "primary_state": "density",
+    "deterministic": true,
+    "integer_transport": true,
+    "geometry_forced_boundary": true
+  },
+  "control": {
+    "mode": "control",
+    "ticks": 800,
+    "grid_size": 129,
+    "core_radius": 12,
+    "total_ste_initial": 4546860,
+    "total_ste_final": 4546860,
+    "conservation_error_max": 0,
+    "core_leak_samples": 0,
+    "blocked_total": 0,
+    "redirected_total": 0,
+    "redirection_ratio": 0.0,
+    "shell_peak_mean": 940.9069767441861,
+    "far_peak_mean": 407.951768488746,
+    "shell_to_far_peak_ratio": 2.3064172027731815,
+    "shell_emergence_latency": 0
+  },
+  "void": {
+    "mode": "void",
+    "ticks": 800,
+    "grid_size": 129,
+    "core_radius": 12,
+    "total_ste_initial": 4371636,
+    "total_ste_final": 4371636,
+    "conservation_error_max": 0,
+    "core_leak_samples": 0,
+    "blocked_total": 13305318,
+    "redirected_total": 13305318,
+    "redirection_ratio": 1.0,
+    "shell_peak_mean": 9095.511627906977,
+    "far_peak_mean": 407.951768488746,
+    "shell_to_far_peak_ratio": 22.29555631441733,
+    "shell_emergence_latency": 0
+  },
+  "acceptance": {
+    "conservation": true,
+    "no_core_leak": true,
+    "redirection_effective": true,
+    "shell_emerges": true,
+    "overall_pass": true
+  }
+}

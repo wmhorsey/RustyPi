@@ -1,0 +1,14 @@
+{
+  "first_tick": 0,
+  "last_tick": 4975,
+  "rows": 409600,
+  "core_nonzero_samples": 0,
+  "metrics": {
+    "shell_to_far_tension_ratio": 0.8247557003257329,
+    "boundary_contrast_number": 0.6588792422692942,
+    "boundary_depletion_share": 0.9235,
+    "active_phase_share": 0.14833984375,
+    "abs_field_growth_ratio": 5.616268625054603
+  },
+  "regime": "compressive-ramp"
+}

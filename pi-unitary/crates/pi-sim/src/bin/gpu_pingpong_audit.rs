@@ -12,7 +12,19 @@ struct Params {
   tick: u32,
     node_count: u32,
     target_phase: u32,
-    boundary_tension: u32,
+    boundary_mode: u32,
+    boundary_rate_num: u32,
+    boundary_rate_den: u32,
+        drive_mode: u32,
+        stagger_mode: u32,
+        center_radius: u32,
+        center_rate_num: u32,
+        center_rate_den: u32,
+        drive_strength: u32,
+        _pad1: u32,
+        _pad2: u32,
+        _pad3: u32,
+        _pad4: u32,
 }
 
 struct NodeState {
@@ -35,8 +47,16 @@ var<storage, read_write> dst_nodes: array<NodeState>;
 @group(0) @binding(2)
 var<uniform> params: Params;
 
-fn clamp_nonneg(v: i32) -> i32 {
+fn available(v: i32) -> i32 {
     return max(v, 0);
+}
+
+fn bounded_sub(v: i32, delta: i32) -> i32 {
+    let d = max(delta, 0);
+    if (v <= 0) {
+        return v;
+    }
+    return max(0, v - d);
 }
 
 fn shortest_arc_4096(a: u32, b: u32) -> i32 {
@@ -44,8 +64,17 @@ fn shortest_arc_4096(a: u32, b: u32) -> i32 {
     return min(d, 4096 - d);
 }
 
+fn is_void_core_index(i: u32) -> bool {
+    if !(params.center_radius > 0u && params.center_rate_num == 0u && params.center_rate_den > 0u) {
+        return false;
+    }
+    let center = params.node_count / 2u;
+    let dist = select(center - i, i - center, i >= center);
+    return dist <= params.center_radius;
+}
+
 fn classify_phase(prev_phase: u32, coherence: i32, energy: i32, shell_ring_ticks: i32, spin_bias: i32) -> u32 {
-    let tension = min(clamp_nonneg(coherence), clamp_nonneg(energy));
+    let tension = min(available(coherence), available(energy));
     if (tension <= 0) {
         if (prev_phase == 0u) {
             return 0u;
@@ -88,8 +117,10 @@ fn classify_phase(prev_phase: u32, coherence: i32, energy: i32, shell_ring_ticks
             return 3u;
         }
         case 4u: {
-            let pressure = clamp_nonneg(energy) - clamp_nonneg(coherence);
-            if (tension <= 0 || pressure > 2) {
+            let pressure = available(energy) - available(coherence);
+            // Cavitation/dissolution is a rare, high-threshold boundary failure.
+            let cavitation_trigger = pressure > 256 && shell_ring_ticks > 2048 && spin_bias > 512;
+            if (cavitation_trigger) {
                 return 5u;
             }
             return 4u;
@@ -141,35 +172,134 @@ fn main(@builtin(global_invocation_id) gid: vec3<u32>) {
 
     let pulse_a = ((params.tick + i) % 29u) == 0u;
     let pulse_b = ((params.tick + i + i) % 37u) == 0u;
-    let drive = select(0i, 1i, pulse_a || pulse_b);
+    let pulse_drive = select(0i, 1i, pulse_a || pulse_b) * i32(max(1u, params.drive_strength));
+    let drive = select(0i, pulse_drive, params.drive_mode != 0u);
 
     if (drive > 0) {
         next.energy = next.energy + drive;
     }
 
-    let boundary_hold = max(1u, params.boundary_tension);
-    let phase_step = select(0u, 1u, ((params.tick + i) % boundary_hold) == 0u);
+    // Exact rational clocking (Bresenham-style without floating point):
+    // step when floor((x+1)*num/den) > floor(x*num/den), x = tick + node_index.
+    var rate_num = max(1u, params.boundary_rate_num);
+    var rate_den = max(1u, params.boundary_rate_den);
+
+    var center_is_void = false;
+    if (params.center_radius > 0u && params.center_rate_den > 0u) {
+        let center = params.node_count / 2u;
+        let dist = select(center - i, i - center, i >= center);
+        if (dist <= params.center_radius) {
+            if (params.center_rate_num == 0u) {
+                center_is_void = true;
+            } else {
+                rate_num = params.center_rate_num;
+                rate_den = params.center_rate_den;
+            }
+        }
+    }
+
+    if (center_is_void) {
+        // STE value of zero is treated as no-carrier core: no transport or local excitation.
+        next.phase_tick = prev.phase_tick;
+        next.coherence = 0;
+        next.energy = 0;
+        next.shell_ring_ticks = 0;
+        next.spin_bias = 0;
+        next.phase_id = 0u;
+        next.pathway_id = 0u;
+        next.drive = 0;
+        dst_nodes[i] = next;
+        return;
+    }
+
+    var near_void_boundary = false;
+    if (params.center_radius > 0u && params.center_rate_num == 0u && params.center_rate_den > 0u) {
+        let center = params.node_count / 2u;
+        let dist = select(center - i, i - center, i >= center);
+        near_void_boundary = (dist == params.center_radius) || (dist == params.center_radius + 1u);
+    }
+
+    let left = select(params.node_count - 1u, i - 1u, i > 0u);
+    let right = select(0u, i + 1u, (i + 1u) < params.node_count);
+    let left_void = is_void_core_index(left);
+    let right_void = is_void_core_index(right);
+
+    let clock_base = select(params.tick, params.tick + i, params.stagger_mode != 0u);
+    let x0 = clock_base;
+    let q0 = (x0 * rate_num) / rate_den;
+    let q1 = ((x0 + 1u) * rate_num) / rate_den;
+    let phase_step = select(0u, 1u, q1 > q0);
     next.phase_tick = (prev.phase_tick + phase_step) & 4095u;
     let arc = shortest_arc_4096(next.phase_tick, params.target_phase);
 
+    let c_pre = next.coherence;
+    let e_pre = next.energy;
+    let imbalance_pre = abs(c_pre - e_pre);
+    let void_gap_pre = select(0, abs(c_pre) + abs(e_pre), near_void_boundary);
+    // Mobility peaks near balance; load raises the response envelope.
+    let balance_peak = 12 - imbalance_pre;
+    let load_scale = 1 + (abs(c_pre) + abs(e_pre)) / 16;
+    let contrast_drive_pre = 1 + void_gap_pre / 64;
+    let geom_resist_pre = 1 + imbalance_pre + abs(c_pre) / 8 + abs(e_pre) / 8;
     if (arc <= 24 && drive > 0) {
-        next.coherence = next.coherence + 4;
+        let coherence_gain_raw = 1 + (balance_peak * (load_scale + contrast_drive_pre)) / geom_resist_pre;
+        let coherence_gain = max(0, coherence_gain_raw);
+        next.coherence = next.coherence + coherence_gain;
     } else {
-        next.coherence = max(0, next.coherence - 1);
+        let coherence_decay = select(1, 2, imbalance_pre > 12);
+        next.coherence = bounded_sub(next.coherence, coherence_decay);
     }
 
-    let tension = min(clamp_nonneg(next.coherence), clamp_nonneg(next.energy));
+    let c_now = next.coherence;
+    let e_now = next.energy;
+    let tension = min(c_now, e_now);
+    let imbalance_now = abs(c_now - e_now);
+    let void_gap_now = select(0, abs(c_now) + abs(e_now), near_void_boundary);
+
+    // Geometry-forced redirection: blocked inward pull at void interface is diverted tangentially.
+    if (near_void_boundary && (left_void || right_void)) {
+        let left_state = src_nodes[left];
+        let right_state = src_nodes[right];
+        var blocked_pull = 0i;
+        if (left_void) {
+            blocked_pull = blocked_pull
+                + max(0, available(next.energy) - available(left_state.energy))
+                + max(0, available(next.coherence) - available(left_state.coherence));
+        }
+        if (right_void) {
+            blocked_pull = blocked_pull
+                + max(0, available(next.energy) - available(right_state.energy))
+                + max(0, available(next.coherence) - available(right_state.coherence));
+        }
+        let redirected_raw = blocked_pull / 8;
+        let redirected = min(max(0, redirected_raw), available(next.energy));
+        if (redirected > 0) {
+            next.energy = bounded_sub(next.energy, redirected);
+            next.shell_ring_ticks = next.shell_ring_ticks + redirected;
+            next.spin_bias = next.spin_bias + 1;
+        }
+    }
+
+    let lateral_mobility = 12 - imbalance_now;
+    let contrast_drive_now = 1 + void_gap_now / 32;
+    let shell_load = 1 + abs(tension) / 4;
+    let geom_resist_now = 1 + imbalance_now + abs(next.shell_ring_ticks) / 4;
     if (drive > 0 && arc <= 24 && tension > 0) {
-        next.shell_ring_ticks = next.shell_ring_ticks + 1;
+        let shell_gain_raw = 1 + (lateral_mobility * (contrast_drive_now + shell_load)) / geom_resist_now;
+        let shell_gain = min(max(0, shell_gain_raw), available(next.energy));
+        next.energy = bounded_sub(next.energy, shell_gain);
+        next.shell_ring_ticks = next.shell_ring_ticks + shell_gain;
     } else {
-        next.shell_ring_ticks = max(0, next.shell_ring_ticks - 1);
+        let shell_support = (void_gap_now + tension) / geom_resist_now;
+        let shell_decay = 2 - shell_support;
+        next.shell_ring_ticks = bounded_sub(next.shell_ring_ticks, shell_decay);
     }
 
-    let asymmetry = clamp_nonneg(next.coherence) - clamp_nonneg(next.energy);
+    let asymmetry = next.coherence - next.energy;
     if (drive > 0 && asymmetry > 0) {
         next.spin_bias = next.spin_bias + 1;
     } else {
-        next.spin_bias = max(0, next.spin_bias - 1);
+        next.spin_bias = bounded_sub(next.spin_bias, 1);
     }
 
     if (drive == 0 && next.energy > 0 && prev.phase_id == 0u) {
@@ -216,11 +346,32 @@ fn parse_u32_arg(value: Option<&String>, default_value: u32) -> u32 {
     }
 }
 
-fn xorshift64(state: &mut u64) -> u64 {
-    *state ^= *state << 13;
-    *state ^= *state >> 7;
-    *state ^= *state << 17;
-    *state
+fn parse_u32_nonneg_arg(value: Option<&String>, default_value: u32) -> u32 {
+    match value.and_then(|v| v.parse::<u32>().ok()) {
+        Some(v) => v,
+        None => default_value,
+    }
+}
+
+fn deterministic_seed_pair(idx: usize, node_count: usize, seed_span: u32) -> (u32, u32) {
+    if seed_span <= 1 {
+        return (0, 0);
+    }
+
+    let i = idx as u64;
+    let n = node_count.max(1) as u64;
+    let center = n / 2;
+    let dist = i.abs_diff(center);
+
+    // Deterministic complexity from nested lattice-like motifs and radial structure.
+    let radial_band = (dist * dist + 17 * dist + 31) % n;
+    let angular_band = (i * 13 + (i / 7) * 17 + (i % 29) * 19 + 5) % n;
+    let coupled = (radial_band * 23 + angular_band * 31 + (i ^ (dist << 1))) % n;
+
+    let span = seed_span as u64;
+    let coherence = (radial_band + coupled) % span;
+    let energy = (angular_band + coupled + dist % span) % span;
+    (coherence as u32, energy as u32)
 }
 
 fn u32_words_to_le_bytes(words: &[u32]) -> Vec<u8> {
@@ -247,6 +398,20 @@ async fn run() -> Result<(), String> {
     let mut segment_mb: u32 = 512;
     let mut target_phase: u32 = 0;
     let mut boundary_tension: u32 = 1;
+    let mut boundary_rate_num: u32 = 1;
+    let mut boundary_rate_den: u32 = 1;
+    let mut center_radius: u32 = 0;
+    let mut center_rate_num: u32 = 0;
+    let mut center_rate_den: u32 = 0;
+    let mut drive_mode: u32 = 1;
+    let mut drive_strength: u32 = 1;
+    let mut stagger_mode: u32 = 1;
+    let mut uniform_init = false;
+    let mut seed_ste_max: u32 = 3;
+    let mut has_explicit_rate_num = false;
+    let mut has_explicit_rate_den = false;
+    let mut has_center_rate_num = false;
+    let mut has_center_rate_den = false;
     let mut out_dir = PathBuf::from("audit_runs");
     let mut run_label = String::from("gpu-pingpong");
     let mut lane = String::from("full-state-gpu");
@@ -283,6 +448,53 @@ async fn run() -> Result<(), String> {
                 boundary_tension = parse_u32_arg(args.get(i + 1), boundary_tension);
                 i += 1;
             }
+            "--boundary-rate-num" => {
+                boundary_rate_num = parse_u32_arg(args.get(i + 1), boundary_rate_num);
+                has_explicit_rate_num = true;
+                i += 1;
+            }
+            "--boundary-rate-den" => {
+                boundary_rate_den = parse_u32_arg(args.get(i + 1), boundary_rate_den);
+                has_explicit_rate_den = true;
+                i += 1;
+            }
+            "--center-radius" => {
+                center_radius = parse_u32_arg(args.get(i + 1), center_radius);
+                i += 1;
+            }
+            "--center-rate-num" => {
+                center_rate_num = parse_u32_nonneg_arg(args.get(i + 1), center_rate_num);
+                has_center_rate_num = true;
+                i += 1;
+            }
+            "--center-rate-den" => {
+                center_rate_den = parse_u32_nonneg_arg(args.get(i + 1), center_rate_den);
+                has_center_rate_den = true;
+                i += 1;
+            }
+            "--drive-mode" => {
+                if let Some(v) = args.get(i + 1) {
+                    drive_mode = if v.eq_ignore_ascii_case("off") { 0 } else { 1 };
+                    i += 1;
+                }
+            }
+            "--drive-strength" => {
+                drive_strength = parse_u32_arg(args.get(i + 1), drive_strength);
+                i += 1;
+            }
+            "--stagger-mode" => {
+                if let Some(v) = args.get(i + 1) {
+                    stagger_mode = if v.eq_ignore_ascii_case("off") { 0 } else { 1 };
+                    i += 1;
+                }
+            }
+            "--seed-ste-max" => {
+                seed_ste_max = parse_u32_nonneg_arg(args.get(i + 1), seed_ste_max);
+                i += 1;
+            }
+            "--uniform-init" => {
+                uniform_init = true;
+            }
             "--out-dir" => {
                 if let Some(v) = args.get(i + 1) {
                     out_dir = PathBuf::from(v);
@@ -313,6 +525,16 @@ async fn run() -> Result<(), String> {
     }
 
     // Node layout is fixed-width so snapshots are schema-stable across runs.
+    if (has_center_rate_num ^ has_center_rate_den) && center_radius > 0 {
+        return Err(String::from(
+            "Provide both --center-rate-num and --center-rate-den when using --center-radius",
+        ));
+    }
+    if has_center_rate_den && center_rate_den == 0 {
+        return Err(String::from("--center-rate-den must be >= 1"));
+    }
+    let drive_strength = drive_strength.max(1);
+
     let node_count = if nodes > 0 {
         nodes
     } else {
@@ -386,7 +608,7 @@ async fn run() -> Result<(), String> {
 
     let params = device.create_buffer(&wgpu::BufferDescriptor {
         label: Some("compute-params"),
-        size: 16,
+        size: 64,
         usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
         mapped_at_creation: false,
     });
@@ -478,20 +700,34 @@ async fn run() -> Result<(), String> {
         entry_point: "main",
     });
 
-    // Deterministic seed initialization for audit reproducibility.
-    let mut seed_state: u64 = 0x0123_4567_89AB_CDEF;
     let mut init_words = vec![0u32; (state_bytes / mem::size_of::<u32>()).max(1)];
-    for idx in 0..node_count {
-        let base = idx * 8;
-        let v = xorshift64(&mut seed_state);
-        init_words[base] = (idx as u32) % TAU_TICKS_DEFAULT_U32; // phase_tick
-        init_words[base + 1] = ((v as u32) & 0x3) as i32 as u32; // coherence
-        init_words[base + 2] = (((v >> 16) as u32) & 0x3) as i32 as u32; // energy
-        init_words[base + 3] = 0; // shell_ring_ticks
-        init_words[base + 4] = 0; // spin_bias
-        init_words[base + 5] = 0; // phase_id (free)
-        init_words[base + 6] = 0; // pathway_id (free_pool)
-        init_words[base + 7] = 0; // drive
+    if uniform_init {
+        for idx in 0..node_count {
+            let base = idx * 8;
+            init_words[base] = 0; // phase_tick
+            init_words[base + 1] = 0; // coherence
+            init_words[base + 2] = 0; // energy
+            init_words[base + 3] = 0; // shell_ring_ticks
+            init_words[base + 4] = 0; // spin_bias
+            init_words[base + 5] = 0; // phase_id (free)
+            init_words[base + 6] = 0; // pathway_id (free_pool)
+            init_words[base + 7] = 0; // drive
+        }
+    } else {
+        // Structured deterministic initialization: no random source.
+        let seed_span = seed_ste_max.saturating_add(1);
+        for idx in 0..node_count {
+            let base = idx * 8;
+            init_words[base] = (idx as u32) % TAU_TICKS_DEFAULT_U32; // phase_tick
+            let (c_seed, e_seed) = deterministic_seed_pair(idx, node_count, seed_span);
+            init_words[base + 1] = c_seed; // coherence
+            init_words[base + 2] = e_seed; // energy
+            init_words[base + 3] = 0; // shell_ring_ticks
+            init_words[base + 4] = 0; // spin_bias
+            init_words[base + 5] = 0; // phase_id (free)
+            init_words[base + 6] = 0; // pathway_id (free_pool)
+            init_words[base + 7] = 0; // drive
+        }
     }
     let init_bytes = u32_words_to_le_bytes(&init_words);
     queue.write_buffer(&ping, 0, &init_bytes);
@@ -500,14 +736,33 @@ async fn run() -> Result<(), String> {
     let mut snapshots = 0u64;
     let mut payload_total = 0u128;
     let mut active_is_ping = true;
-    let boundary_tension = boundary_tension.max(1);
+    // Legacy knob maps to exact rational 1/tension unless explicit num/den are provided.
+    if !(has_explicit_rate_num || has_explicit_rate_den) {
+        boundary_rate_num = 1;
+        boundary_rate_den = boundary_tension.max(1);
+    }
+    let boundary_rate_num = boundary_rate_num.max(1);
+    let boundary_rate_den = boundary_rate_den.max(1);
+    let boundary_mode = 1u32; // 1 = rational clocking
 
     for tick in 0..ticks {
         let params_words = [
             (tick as u32).wrapping_add(1),
             node_count as u32,
             target_phase,
-            boundary_tension,
+            boundary_mode,
+            boundary_rate_num,
+            boundary_rate_den,
+            drive_mode,
+            stagger_mode,
+            center_radius,
+            center_rate_num,
+            center_rate_den,
+            drive_strength,
+            0,
+            0,
+            0,
+            0,
         ];
         let params_bytes = u32_words_to_le_bytes(&params_words);
         queue.write_buffer(&params, 0, &params_bytes);
@@ -586,6 +841,23 @@ async fn run() -> Result<(), String> {
     println!("throughput_gib_s={gib_per_s:.3}");
     println!("node_count={node_count}");
     println!("node_state_bytes={GPU_CHOKE_NODE_BYTES}");
+    println!("boundary_rate={}/{}", boundary_rate_num, boundary_rate_den);
+    println!("drive_mode={}", if drive_mode == 0 { "off" } else { "pulse" });
+    println!("drive_strength={drive_strength}");
+    println!("stagger_mode={}", if stagger_mode == 0 { "off" } else { "on" });
+    println!("uniform_init={uniform_init}");
+    println!("seed_ste_max={seed_ste_max}");
+    if center_radius > 0 && center_rate_num > 0 && center_rate_den > 0 {
+        println!(
+            "center_depression=radius:{} rate:{}/{}",
+            center_radius, center_rate_num, center_rate_den
+        );
+    } else if center_radius > 0 && center_rate_num == 0 && center_rate_den > 0 {
+        println!(
+            "center_void=radius:{} ste_rate:{}/{}",
+            center_radius, center_rate_num, center_rate_den
+        );
+    }
     println!("run_dir={}", run_dir.display());
 
     Ok(())

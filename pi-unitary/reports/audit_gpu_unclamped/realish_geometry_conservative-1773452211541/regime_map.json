@@ -1,0 +1,14 @@
+{
+  "first_tick": 0,
+  "last_tick": 1975,
+  "rows": 163840,
+  "core_nonzero_samples": 0,
+  "metrics": {
+    "shell_to_far_tension_ratio": 0.8247557003257329,
+    "boundary_contrast_number": 0.7894272604938569,
+    "boundary_depletion_share": 0.885,
+    "active_phase_share": 0.394189453125,
+    "abs_field_growth_ratio": 1.9841670835412155
+  },
+  "regime": "diffuse-free"
+}

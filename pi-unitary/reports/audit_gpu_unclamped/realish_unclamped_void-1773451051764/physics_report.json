@@ -1,0 +1,87 @@
+{
+  "ok": false,
+  "checks": [
+    {
+      "name": "csv not empty",
+      "ok": true,
+      "detail": "rows=409600"
+    },
+    {
+      "name": "no duplicate (tick,sequence,node)",
+      "ok": true,
+      "detail": "duplicates=0"
+    },
+    {
+      "name": "constant node count per tick",
+      "ok": true,
+      "detail": "min=2048, max=2048, ticks=200"
+    },
+    {
+      "name": "non-negative energy/coherence",
+      "ok": false,
+      "detail": "neg_energy=0, neg_coherence=246281"
+    },
+    {
+      "name": "phase ids match phase labels",
+      "ok": true,
+      "detail": "mismatches=0"
+    },
+    {
+      "name": "pathway labels follow phase/energy rules",
+      "ok": true,
+      "detail": "mismatches=0"
+    },
+    {
+      "name": "pathway ids match pathway labels",
+      "ok": true,
+      "detail": "mismatches=0"
+    }
+  ],
+  "warnings": [],
+  "summary": {
+    "rows": 409600,
+    "tick_count": 200,
+    "first_tick": 0,
+    "last_tick": 4975,
+    "nodes_per_tick": 2048,
+    "active_first": 1535,
+    "active_last": 0,
+    "phase_first": {
+      "formation": 1535,
+      "free": 513
+    },
+    "phase_last": {
+      "free": 2048
+    },
+    "phase_total": {
+      "formation": 60692,
+      "free": 348840,
+      "dissolution": 68
+    },
+    "boundary_profile": {
+      "phase_tick_boundary": "periodic_mod_4096",
+      "phase_tick_wrap_events": 0,
+      "snapshot_tick_stride": 25,
+      "avg_phase_tick_delta_per_snapshot": 2.6768338764133164,
+      "effective_field_rate_per_tick": 0.10707335505653265,
+      "inferred_boundary_tension": 9.33939166725484,
+      "configured_boundary_rate_num": 1,
+      "configured_boundary_rate_den": 7,
+      "rational_residual_abs_total": 364595,
+      "rational_residual_max_abs": 4,
+      "rational_residual_samples": 407552,
+      "lower_boundaries": {
+        "energy": "hard_floor_0",
+        "coherence": "hard_floor_0",
+        "shell_ring_ticks": "hard_floor_0",
+        "spin_bias": "hard_floor_0"
+      },
+      "floor_shares": {
+        "energy_zero_share": 0.25048828125,
+        "coherence_zero_share": 0.25055419921875,
+        "shell_zero_share": 0.25131591796875,
+        "spin_zero_share": 0.25048828125
+      }
+    }
+  }
+}

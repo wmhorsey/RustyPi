@@ -167,6 +167,18 @@ python scripts/analyze_choke_physics.py --csv reports/audit_runs/rtx2070_pingpon
 
 This writes `physics_report.md` and `physics_report.json` beside the decoded CSV.
 
+Run a one-command verification harness (capture -> decode -> analyze) with strict PASS/FAIL exit code:
+
+```bash
+pwsh ./scripts/verify_gpu_pipeline.ps1
+```
+
+This writes a timestamped run under `reports/audit_gpu_verify_harness/` and returns:
+
+- `0` when physics checks pass
+- `2` when physics checks fail
+- `1` for harness/runtime errors
+
 Run a multi-scale stability sweep and auto-generate summary metrics:
 
 ```bash
